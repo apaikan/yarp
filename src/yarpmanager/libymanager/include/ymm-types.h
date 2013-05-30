@@ -24,6 +24,8 @@ typedef enum __NodeType {
     APPLICATION,
     RESOURCE,
     INOUTD,
+    BEHAVIOR,
+    GROUP,
     NODE_FILENAME,
     NODE_APPTEMPLATE,
     NODE_OTHER
