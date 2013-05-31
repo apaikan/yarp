@@ -17,6 +17,7 @@
 #include "module.h"
 #include "application.h"
 #include "resource.h"
+#include "behavior.h"
 
 //namespace ymm {
 
@@ -112,6 +113,25 @@ public:
     virtual void reset(void) = 0;
     virtual AppTemplate* getNextAppTemplate(void) = 0;
     
+protected:
+
+private:
+
+};
+
+/**
+ * Abstract Class BehModelLoader  
+ */
+class BehModelLoader {
+
+public: 
+    BehModelLoader(void) {}
+    virtual ~BehModelLoader() {}
+    virtual bool init(void) = 0; 
+    virtual void reset(void) = 0;
+    virtual void fini(void) = 0;
+    virtual std::vector<Behavior>& getBehaviors(void) = 0;
+    virtual std::vector<BehaviorGroup>& getBehaviorGroups(void) = 0;
 protected:
 
 private:

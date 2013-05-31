@@ -13,6 +13,7 @@
 #ifndef __BEHAVIOR_H_
 #define __BEHAVIOR_H_
 
+#include <vector>
 
 #include "ymm-types.h" 
 #include "node.h"
@@ -36,15 +37,18 @@ public:
 
     void setAt(const char* at) { if(at) strAt = at; }
     void setPort(const char* port) { if(port) strPort = port; }
+    void setBlocker(const char* blocker) { if(blocker) strBlocker = blocker; }
     const char* getAt(void) { return strAt.c_str(); }
     const char* getPort(void) { return strPort.c_str(); }    
-    bool operator==(const Configuration& alt) {      
+    const char* getBlocker(void) { return strBlocker.c_str(); }
+    bool operator==(const Configuration& alt) {
         return (strAt == alt.strAt); 
     }
  
 private:
     string strAt;
     string strPort;
+    string strBlocker;
 };
 
 typedef vector<Configuration> ConfigContainer;
@@ -59,16 +63,20 @@ typedef vector<string>::iterator InhibIterator;
 class Behavior : public Node{
 
 public: 
+    Behavior(void);
     Behavior(const char* szName);
     Behavior(const Behavior &beh);
     virtual ~Behavior();
     virtual Node* clone(void);        
+    
+    void setName(const char* szName) { if(szName) strName = szName; }
+    const char* getName(void) { return strName.c_str(); }
 
     void addConfiguration(Configuration& config) { configurations.push_back(config); }
     int configurationCount(void) { return configurations.size(); }
     Configuration& getConfigurationAt(int index) { return configurations[index]; }
 
-    void addInhibition(const char* inhib) { inhibitions.push_back(inhib); }
+    void addInhibition(const char* inhib) { if(inhib) inhibitions.push_back(inhib); }
     int inhibitionCount(void) { return inhibitions.size(); }
     const char* getInhibitionAt(int index) { return inhibitions[index].c_str(); }
 
@@ -85,6 +93,8 @@ public:
         inhibitions.clear();
         conditions.clear();
     }
+
+    Behavior& operator=(const Behavior& rhs);
 
     bool operator==(const Behavior& alt) {      
         return (strName == alt.strName); 
@@ -104,23 +114,27 @@ private:
 
 
 /**
- * Class Group  
+ * Class BehaviorGroup  
  */
-class Group : public Node{
+class BehaviorGroup : public Node{
 
 public: 
-    Group(const char* szName);
-    Group(const Group &group);
-    virtual ~Group();
+    BehaviorGroup(void);
+    BehaviorGroup(const char* szName);
+    BehaviorGroup(const BehaviorGroup &group);
+    virtual ~BehaviorGroup();
     virtual Node* clone(void);        
 
-    void addBehavior(const char* beh) { behaviors.push_back(beh); }
+    void setName(const char* szName) { if(szName) strName = szName; }
+    const char* getName(void) { return strName.c_str(); }
+
+    void addBehavior(const char* beh) { if(beh) behaviors.push_back(beh); }
     int behaviorCount(void) { return behaviors.size(); }
     const char* getBehaviorAt(int index) { return behaviors[index].c_str(); }
 
-    void addGroup(const char* group) { groups.push_back(group); }
+    void addBehaviorGroup(const char* group) { if(group) groups.push_back(group); }
     int groupCount(void) { return groups.size(); }
-    const char* getGroupAt(int index) { return groups[index].c_str(); }
+    const char* getBehaviorGroupAt(int index) { return groups[index].c_str(); }
 
     void setCondition(const char* cond) { if(cond) conditions = cond; }
     const char* getCondition(void) { return conditions.c_str(); }
@@ -136,7 +150,9 @@ public:
         conditions.clear();
     }
 
-    bool operator==(const Group& alt) {      
+    BehaviorGroup& operator=(const BehaviorGroup& rhs);
+
+    bool operator==(const BehaviorGroup& alt) {      
         return (strName == alt.strName); 
     }
  
@@ -148,7 +164,7 @@ private:
     string conditions;
 
 private:
-    void swap(const Group &group);
+    void swap(const BehaviorGroup &group);
 
 };
 
@@ -156,8 +172,8 @@ private:
 
 typedef vector<Behavior*> BehaviorPContainer;
 typedef vector<Behavior*>::iterator BehaviorPIterator;
-typedef vector<Group*> GroupPContainer;
-typedef vector<Group*>::iterator GroupPIterator;
+typedef vector<BehaviorGroup*> BehaviorGroupPContainer;
+typedef vector<BehaviorGroup*>::iterator BehaviorGroupPIterator;
 
 
 #endif //__BEHAVIOR__

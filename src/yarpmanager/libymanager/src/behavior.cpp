@@ -18,13 +18,19 @@ using namespace std;
  * Behavior
  */
 
+Behavior::Behavior(void) : Node(BEHAVIOR)
+{
+    clear();
+}
+
+
 Behavior::Behavior(const char* szName) : Node(BEHAVIOR)
 {
     clear();
     if(szName) strName = szName;
 }
 
-Behavior::Behavior(const Behavior &beh) : Node(BEHAVIOR)
+Behavior::Behavior(const Behavior &beh) : Node(beh)
 {
     Behavior::swap(beh);
 }
@@ -35,6 +41,13 @@ Node* Behavior::clone(void)
 {
     Behavior* beh = new Behavior(*this);
     return beh;
+}
+
+Behavior& Behavior::operator=(const Behavior& rhs)
+{
+    Node::operator=(rhs);
+    Behavior::swap(rhs);
+    return *this;
 }
 
 void Behavior::swap(const Behavior &beh)
@@ -49,29 +62,42 @@ void Behavior::swap(const Behavior &beh)
 
 
 /*
- * Group
+ * BehaviorGroup
  */
 
-Group::Group(const char* szName) : Node(GROUP)
+BehaviorGroup::BehaviorGroup(void) : Node(GROUP)
+{
+    clear();
+}
+
+
+BehaviorGroup::BehaviorGroup(const char* szName) : Node(GROUP)
 {
     clear();
     if(szName) strName = szName;
 }
 
-Group::Group(const Group &group) : Node(GROUP)
+BehaviorGroup::BehaviorGroup(const BehaviorGroup &group) : Node(group)
 {
-    Group::swap(group);
+    BehaviorGroup::swap(group);
 }
 
-Group::~Group() { }
+BehaviorGroup::~BehaviorGroup() { }
 
-Node* Group::clone(void) 
+Node* BehaviorGroup::clone(void) 
 {
-    Group* group = new Group(*this);
+    BehaviorGroup* group = new BehaviorGroup(*this);
     return group;
 }
 
-void Group::swap(const Group &group)
+BehaviorGroup& BehaviorGroup::operator=(const BehaviorGroup& rhs)
+{
+    Node::operator=(rhs);
+    BehaviorGroup::swap(rhs);
+    return *this;
+}
+
+void BehaviorGroup::swap(const BehaviorGroup &group)
 {
     clear();
     strName = group.strName;
