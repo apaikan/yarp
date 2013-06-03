@@ -13,6 +13,7 @@
 #include "module.h"
 #include "application.h"
 #include "resource.h"
+#include "behavior.h"
 #include <stdio.h>
 
 //#if defined(_MSC_VER) && (_MSC_VER == 1600)
@@ -433,7 +434,7 @@ bool exportDotGraph(Graph& graph, const char* szFileName)
 
                     break;
             }
-        
+
             default:
                 break;
         };
@@ -444,4 +445,99 @@ bool exportDotGraph(Graph& graph, const char* szFileName)
     dot.close();
     return true;
 }
+
+void dotDrawGroup(ofstream& dot, BehaviorGroup* group)
+{
+    dot<<endl;
+	dot<<"subgraph "<<"\"cluster "<<group->getLabel()<<"\" {";
+    //dot<<" label=\""<<group->getName()<<"\""<<";"<<endl;                    
+
+    dot<<"label=<"<<endl;
+    dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
+    dot<<"<TR><TD>"<<group->getName()<<"</TD></TR>"<<endl;
+    dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> ("<<group->getCondition()<<") </font></TD></TR>"<<endl;
+    dot<<"</TABLE>>"<<endl;
+    dot<<"color=bisque4; fillcolor=cornsilk; peripheries=1; style=filled; penwidth=2;"<<endl;
+    for(int i=0; i<group->sucCount(); i++)
+    {
+        Node* node = group->getLinkAt(i).to();
+        BehaviorGroup* chgroup = dynamic_cast<BehaviorGroup*>(node);
+        Behavior* behavior= dynamic_cast<Behavior*>(node);
+        if(chgroup)
+            dotDrawGroup(dot, chgroup);
+        else if(behavior) 
+        {          
+            string strLabel = string(group->getLabel()) + string(behavior->getLabel());
+            dot<<"\""<<strLabel<<"\"";
+            //dot<<" [label=\""<<behavior->getName()<<"\"";
+            dot<<"[label=<"<<endl;            
+            dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
+            dot<<"<TR><TD>"<<behavior->getName()<<"</TD></TR>"<<endl;
+            if(strlen(behavior->getCondition()))
+                dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> ("<<behavior->getCondition()<<") </font></TD></TR>"<<endl;
+            else
+                dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> </font></TD></TR>"<<endl;
+            dot<<"</TABLE>>"<<endl;
+            dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
+            for(int j=0; j<behavior->inhibitionCount(); j++)
+            {
+                dot<<"\""<<strLabel<<"\" -> ";
+                dot<<"\""<<string(group->getLabel())+string(behavior->getInhibitionAt(j))<<"\"";
+                dot<<" [label=\"\" color=orangered3];"<<endl;               
+            }
+        }
+    }
+
+    dot<<"}"<<endl;
+}
+
+bool exportBehaviorDotGraph(Graph& graph, const char* szFileName)
+{
+    ofstream dot; 
+    dot.open(szFileName);
+    if(!dot.is_open())
+        return false;
+    
+    dot<<"digraph G {"<<endl;
+    dot<<"rankdir=LR;"<<endl;
+    dot<<"ranksep=0.4;"<<endl;
+    dot<<"nodesep=0.4;"<<endl;
+
+    for(GraphIterator itr=graph.begin(); itr!=graph.end(); itr++)   
+    {
+        switch((*itr)->getType()) {                 
+            case GROUP:{
+                    BehaviorGroup* group = (BehaviorGroup*)(*itr);
+                    if(group->owner() == NULL)
+                        dotDrawGroup(dot, group);
+                    break;
+            }
+            case BEHAVIOR:{
+                    Behavior* behavior = (Behavior*)(*itr);
+                    if(behavior->owner() == NULL)
+                    {
+                        dot<<"\""<<behavior->getLabel()<<"\"";
+                        dot<<" [label=\""<<behavior->getName()<<"\"";
+                        dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
+                        for(int j=0; j<behavior->inhibitionCount(); j++)
+                        {
+                            dot<<"\""<<behavior->getLabel()<<"\" -> ";
+                            dot<<"\""<<behavior->getInhibitionAt(j)<<"\"";
+                            dot<<" [label=\"\" color=orangered3];"<<endl;                
+                        }
+                    } 
+                    break;
+            }
+ 
+            default:
+                break;
+        };
+    }
+
+    //dot<<GRAPH_LEGEND;
+    dot<<"}"<<endl;
+    dot.close();
+    return true;
+}
+
 

@@ -97,6 +97,7 @@ bool BehaviorModel::createFrom(BehModelLoader& bloader)
                     return false;
                 }
                 behGraph.addLink(group, chgroup, 0);
+                chgroup->setOwner(group);
             }
 
             // ading link to the behaviors
@@ -111,17 +112,14 @@ bool BehaviorModel::createFrom(BehModelLoader& bloader)
                     return false;
                 }
                 behGraph.addLink(group, behavior, 0);
+                behavior->setOwner(group);
             }
         }
     }
     
     PRINT_GRAPH(behGraph);
+    exportBehaviorDotGraph(behGraph, "./beh.dot");
 
     return true;
-}
-
-bool BehaviorModel::exportDotGraph(const char* szFileName)
-{
-    return false;
 }
 

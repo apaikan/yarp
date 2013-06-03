@@ -35,7 +35,6 @@ public:
     ~BehaviorModel();
 
     bool createFrom(BehModelLoader& bloader);
-    bool exportDotGraph(const char* szFileName);
 
 private:
     Graph behGraph; 

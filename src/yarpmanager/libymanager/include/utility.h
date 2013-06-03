@@ -91,6 +91,8 @@ OS strToOS(const char* szOS);
 
 class Graph;
 bool exportDotGraph(Graph& graph, const char* szFileName);
+bool exportBehaviorDotGraph(Graph& graph, const char* szFileName);
+
 //}
 
 
