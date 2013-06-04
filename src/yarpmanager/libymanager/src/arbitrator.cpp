@@ -82,7 +82,7 @@ bool Arbitrator::trainWeights(const char* opnd)
         parser.addRestrictedOperand((itr->first).c_str());         
 
     // parsing the compact logic
-    rule = string(opnd) + " : " + rule;
+    rule = string(opnd) + " = " + rule;
     if(!parser.parse(rule.c_str()))
         return false;
 

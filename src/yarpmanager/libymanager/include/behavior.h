@@ -83,15 +83,18 @@ public:
     void setCondition(const char* cond) { if(cond) conditions = cond; }
     const char* getCondition(void) { return conditions.c_str(); }
 
-    void setOwner(Node* owner) { behOwner = owner; }
-    Node* owner(void) { return behOwner; }
+    const vector<string>& getInheritedCondition(void);
+
+    void addOwner(Node* owner) { if(owner) owners.push_back(owner); }
+    int ownerCount(void) { return owners.size(); }
+    const Node* getOwnerAt(int index) { return owners[index]; }
 
     void clear(void) {
-        behOwner = NULL;
         strName.clear();
         configurations.clear();
         inhibitions.clear();
         conditions.clear();
+        owners.clear();
     }
 
     Behavior& operator=(const Behavior& rhs);
@@ -101,11 +104,12 @@ public:
     }
  
 private:
-    Node* behOwner;
     string strName; 
     ConfigContainer configurations;
     vector<string> inhibitions;
+    vector<Node*> owners;
     string conditions;
+    vector<string> inheritedConditions;
 
 private:
     void swap(const Behavior &beh);
@@ -139,15 +143,18 @@ public:
     void setCondition(const char* cond) { if(cond) conditions = cond; }
     const char* getCondition(void) { return conditions.c_str(); }
 
-    void setOwner(Node* owner) { groupOwner = owner; }
-    Node* owner(void) { return groupOwner; }
+    const vector<string>& getInheritedCondition(void);
+
+    void addOwner(Node* owner) { if(owner) owners.push_back(owner); }
+    int ownerCount(void) { return owners.size(); }
+    const Node* getOwnerAt(int index) { return owners[index]; }
 
     void clear(void) {
-        groupOwner = NULL;
         strName.clear();
         behaviors.clear();
         groups.clear();
         conditions.clear();
+        owners.clear();
     }
 
     BehaviorGroup& operator=(const BehaviorGroup& rhs);
@@ -157,11 +164,12 @@ public:
     }
  
 private:
-    Node* groupOwner;
     string strName; 
     vector<string> behaviors;
     vector<string> groups;
+    vector<Node*> owners;
     string conditions;
+    vector<string> inheritedConditions;
 
 private:
     void swap(const BehaviorGroup &group);

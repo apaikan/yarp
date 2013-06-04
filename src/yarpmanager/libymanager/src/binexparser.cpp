@@ -22,7 +22,7 @@
 #define EXPNOT     '~'
 #define EXPAND     '&'
 #define EXPOR      '|'
-#define IMPLY      ':'
+#define IMPLY      '='
 
 using namespace std; 
 
@@ -159,7 +159,7 @@ bool BinaryExpParser::checkExpression(std::string& strexp)
     }
     if(std::count(strexp.begin(), strexp.end(), IMPLY) != 1 )
     {
-        logger->addError("Incorrect expression format! (no implication ':' found)");
+        logger->addError("Incorrect expression format! (no implication '=' found)");
         return false;
     }
 
@@ -178,12 +178,12 @@ bool BinaryExpParser::checkExpression(std::string& strexp)
     leftOpr = dummy.substr(0, dummy.find(IMPLY)); 
     if(!leftOpr.size())
     {
-        logger->addError("Missing operand before ':'");
+        logger->addError("Missing operand before '='");
         return false; 
     }
     if(dummy.find(IMPLY) == (dummy.size()-1))
     {
-        logger->addError("Missing operands after ':'");
+        logger->addError("Missing operands after '='");
         return false; 
     }
 

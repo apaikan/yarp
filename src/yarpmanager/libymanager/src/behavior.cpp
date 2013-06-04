@@ -54,11 +54,36 @@ void Behavior::swap(const Behavior &beh)
 {
     clear();
     strName = beh.strName;
-    behOwner = beh.behOwner;
+    owners = beh.owners;
     configurations = beh.configurations;
     inhibitions = beh.inhibitions;
     conditions = beh.conditions;
 }
+
+
+const vector<string>& Behavior::getInheritedCondition(void)
+{
+    inheritedConditions.clear();
+    vector<Node*>::iterator itr;
+    for(itr = owners.begin(); itr != owners.end(); itr++) 
+    {
+        BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
+        vector<string> parentConds = parent->getInheritedCondition();
+        for(size_t i=0; i<parentConds.size(); i++)
+        {
+            if(std::find(inheritedConditions.begin(), 
+                         inheritedConditions.end(), parentConds[i]) == inheritedConditions.end() )
+                inheritedConditions.push_back(parentConds[i]);
+        }                         
+        //inheritedConditions.insert(inheritedConditions.end(), 
+        //                           parentConds.begin(), parentConds.end());
+    }
+    // add its own condition to the list
+    if(conditions.length())
+        inheritedConditions.push_back(conditions);
+    return inheritedConditions;
+}
+
 
 
 /*
@@ -101,9 +126,34 @@ void BehaviorGroup::swap(const BehaviorGroup &group)
 {
     clear();
     strName = group.strName;
-    groupOwner = group.groupOwner;
+    owners = group.owners;
     behaviors = group.behaviors;
     groups = group.groups;
     conditions = group.conditions;
 }
+
+
+const vector<string>& BehaviorGroup::getInheritedCondition(void)
+{
+    inheritedConditions.clear();
+    vector<Node*>::iterator itr;
+    for(itr = owners.begin(); itr != owners.end(); itr++) 
+    {
+        BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
+        vector<string> parentConds = parent->getInheritedCondition();
+        for(size_t i=0; i<parentConds.size(); i++)
+        {
+            if(std::find(inheritedConditions.begin(), 
+                         inheritedConditions.end(), parentConds[i]) == inheritedConditions.end() )
+                inheritedConditions.push_back(parentConds[i]);
+        }                         
+        //inheritedConditions.insert(inheritedConditions.end(), 
+        //                           parentConds.begin(), parentConds.end());
+    }
+    // add its own condition to the list
+    if(conditions.length())
+        inheritedConditions.push_back(conditions);
+    return inheritedConditions;
+}
+
 
