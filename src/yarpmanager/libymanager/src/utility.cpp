@@ -446,6 +446,17 @@ bool exportDotGraph(Graph& graph, const char* szFileName)
     return true;
 }
 
+void searchReplace(string& str, const string& oldStr, const string& newStr)
+{
+  size_t pos = 0;
+  while((pos = str.find(oldStr, pos)) != string::npos)
+  {
+     str.replace(pos, oldStr.length(), newStr);
+     pos += newStr.length();
+  }
+}
+
+
 void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
 {
     dot<<endl;
@@ -458,7 +469,7 @@ void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
     dot<<"label=<"<<endl;
     dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
     dot<<"<TR><TD>"<<group->getName()<<"</TD></TR>"<<endl;
-    dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> ("<<group->getCondition()<<") </font></TD></TR>"<<endl;
+    dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<group->getCondition()<<" </font></TD></TR>"<<endl;
     dot<<"</TABLE>>"<<endl;
     dot<<"color=bisque4; fillcolor=cornsilk; peripheries=1; style=filled; penwidth=2;"<<endl;
     for(int i=0; i<group->sucCount(); i++)
@@ -478,7 +489,11 @@ void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
             //string cond = behavior->getInheritedCondition();
             vector<string> conds = behavior->getInheritedCondition();
             for(size_t i=0; i<conds.size(); i++)
-                dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> ("<<conds[i]<<") </font></TD></TR>"<<endl;
+            {
+                string str = conds[i];
+                searchReplace(str, "&", "&amp;");
+                dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<str<<" </font></TD></TR>"<<endl;
+            }                
             dot<<"</TABLE>>"<<endl;
             dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
             for(int j=0; j<behavior->inhibitionCount(); j++)
@@ -526,7 +541,7 @@ bool exportBehaviorDotGraph(Graph& graph, const char* szFileName)
                         dot<<"<TR><TD>"<<behavior->getName()<<"</TD></TR>"<<endl;
                         vector<string> conds = behavior->getInheritedCondition();
                         for(size_t i=0; i<conds.size(); i++)
-                            dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> ("<<conds[i]<<") </font></TD></TR>"<<endl;
+                            dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<conds[i]<<" </font></TD></TR>"<<endl;
                         dot<<"</TABLE>>"<<endl;
                         dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
                         for(int j=0; j<behavior->inhibitionCount(); j++)

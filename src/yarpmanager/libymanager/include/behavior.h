@@ -102,7 +102,11 @@ public:
     bool operator==(const Behavior& alt) {      
         return (strName == alt.strName); 
     }
- 
+    
+    bool operator!=(const Behavior& alt) {      
+        return (strName != alt.strName); 
+    }
+
 private:
     string strName; 
     ConfigContainer configurations;

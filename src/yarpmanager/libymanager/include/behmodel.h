@@ -21,6 +21,7 @@
 
 #include "behavior.h"
 #include "manifestloader.h"
+#include "arbitrator.h"
 
 using namespace std; 
 
@@ -35,9 +36,17 @@ public:
     ~BehaviorModel();
 
     bool createFrom(BehModelLoader& bloader);
+    vector<Arbitrator>& getArbitrators(void);
 
 private:
-    Graph behGraph; 
+    Arbitrator& getArbitrator(const char* port);
+    void getInhibitors(Behavior& behavior, 
+                       Configuration& conf, 
+                       vector<string>& inhibitors);
+
+private:
+    Graph behGraph;
+    vector<Arbitrator> arbitrators;
 };
 
 

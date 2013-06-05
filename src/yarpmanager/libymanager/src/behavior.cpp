@@ -63,24 +63,32 @@ void Behavior::swap(const Behavior &beh)
 
 const vector<string>& Behavior::getInheritedCondition(void)
 {
+    string tmpCond;
     inheritedConditions.clear();
     vector<Node*>::iterator itr;
     for(itr = owners.begin(); itr != owners.end(); itr++) 
     {
         BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
         vector<string> parentConds = parent->getInheritedCondition();
-        for(size_t i=0; i<parentConds.size(); i++)
+        if(parentConds.size())
         {
-            if(std::find(inheritedConditions.begin(), 
-                         inheritedConditions.end(), parentConds[i]) == inheritedConditions.end() )
-                inheritedConditions.push_back(parentConds[i]);
-        }                         
-        //inheritedConditions.insert(inheritedConditions.end(), 
-        //                           parentConds.begin(), parentConds.end());
+            if(tmpCond.length())
+                tmpCond += string(" | (") + parentConds[0] + string(")");
+            else
+                tmpCond = string("(") + parentConds[0] + string(")");            
+        }            
     }
-    // add its own condition to the list
+    
     if(conditions.length())
-        inheritedConditions.push_back(conditions);
+    {
+        if(tmpCond.length())
+            tmpCond = conditions + " & (" + tmpCond + ")";  
+        else
+            tmpCond = conditions;
+    }
+
+    if(tmpCond.length())
+        inheritedConditions.push_back(tmpCond);
     return inheritedConditions;
 }
 
@@ -135,6 +143,34 @@ void BehaviorGroup::swap(const BehaviorGroup &group)
 
 const vector<string>& BehaviorGroup::getInheritedCondition(void)
 {
+    string tmpCond;
+    inheritedConditions.clear();
+    vector<Node*>::iterator itr;
+    for(itr = owners.begin(); itr != owners.end(); itr++) 
+    {
+        BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
+        vector<string> parentConds = parent->getInheritedCondition();
+        if(parentConds.size())
+        {
+            if(tmpCond.length())
+                tmpCond += string(" | (") + parentConds[0] + string(")");
+            else
+                tmpCond = string("(") + parentConds[0] + string(")");            
+        }            
+    }
+    
+    if(conditions.length())
+    {
+        if(tmpCond.length())
+            tmpCond = conditions + " & (" + tmpCond + ")";  
+        else
+            tmpCond = conditions;
+    }
+    if(tmpCond.length())
+        inheritedConditions.push_back(tmpCond);
+    return inheritedConditions;
+
+    /*
     inheritedConditions.clear();
     vector<Node*>::iterator itr;
     for(itr = owners.begin(); itr != owners.end(); itr++) 
@@ -154,6 +190,7 @@ const vector<string>& BehaviorGroup::getInheritedCondition(void)
     if(conditions.length())
         inheritedConditions.push_back(conditions);
     return inheritedConditions;
+    */
 }
 
 
