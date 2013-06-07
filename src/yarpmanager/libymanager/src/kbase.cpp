@@ -16,8 +16,11 @@
 #include "utility.h"
 #include "resource.h"
 
-using namespace std;
+#include <yarp/os/Property.h>
+#include <yarp/os/Bottle.h>
 
+using namespace std;
+using namespace yarp::os;
 
 bool KnowledgeBase::createFrom(ModuleLoader* _mloader,
                                AppLoader* _apploader, ResourceLoader* _resloader)
@@ -1072,6 +1075,224 @@ bool KnowledgeBase::reasolveDependency(Application* app,
     return ret;
 }
 
+
+bool KnowledgeBase::isAuxilaryConnection(Connection& con)
+{
+    string carrier = con.carrier();    
+    // check if there is a "recv.priority" and "virtual"
+    size_t start = carrier.find("+recv.priority");
+    if(start != std::string::npos)
+    {
+        start = carrier.find("+virtual");
+        if(start != std::string::npos)
+            return true;    
+    }
+
+    return false;
+}
+
+
+Connection& KnowledgeBase::getArbitratedConnection(Application* app, const char* from, const char* to )
+{
+    for(int i=0; i<app->connectionCount(); i++)
+    {        
+        if(compareString(from, app->getConnectionAt(i).from()) &&
+           compareString(to, app->getConnectionAt(i).to()))
+           return app->getConnectionAt(i);
+    }
+    
+    Connection con(from, to, "tcp+recv.priority+virtual"); 
+    return addConnectionToApplication(app, con);
+}
+
+void KnowledgeBase::resetArbitratedConnection(Connection &con)
+{
+    string carrier = con.carrier();    
+
+    // clearing excitations
+    string excitation;
+    size_t start = carrier.find("+(ex");
+    if(start != std::string::npos)
+    {
+        size_t end = carrier.find("+", start+1);
+        if(end == std::string::npos)
+            end = carrier.length();
+        excitation = carrier.substr(start+1, end-(start+1));
+        carrier.erase(start, end-start);        
+    }
+    // clearing bias
+    start = carrier.find("+bs");
+    if(start != std::string::npos)
+    {
+        size_t end = carrier.find("+", start+1);
+        if(end == std::string::npos)
+            end = carrier.length();
+        carrier.erase(start, end-start);
+    }
+
+    // updating carrier
+    con.setCarrier(carrier.c_str());
+}
+
+void KnowledgeBase::setArbitratedBias(Connection &con, int bias)
+{
+    string carrier = con.carrier();
+    // clearing bias
+    size_t start = carrier.find("+bs");
+    if(start != std::string::npos)
+    {
+        size_t end = carrier.find("+", start+1);
+        if(end == std::string::npos)
+            end = carrier.length();
+        carrier.erase(start, end-start);
+    }
+
+    // check if there is a "recv.priority" 
+    start = carrier.find("+recv.priority");
+    if(start == std::string::npos)
+    {
+        if(carrier.length())
+            carrier += "+recv.priority";
+        else
+            carrier = "tcp+recv.priority";
+    }
+
+    // setting bias
+    char dummy[64];
+    sprintf(dummy, "+bs.%d", bias);
+    carrier += dummy;
+    con.setCarrier(carrier.c_str());
+}
+
+void KnowledgeBase::setArbitratedExcitation(Connection& con, const char* szLink, int value)
+{
+    string carrier = con.carrier();    
+
+    string excitation;
+    size_t start = carrier.find("+(ex");
+    if(start != std::string::npos)
+    {
+        size_t end = carrier.find("+", start+1);
+        if(end == std::string::npos)
+            end = carrier.length();
+        excitation = carrier.substr(start+1, end-(start+1));
+        carrier.erase(start, end-start);        
+    }
+
+    // check if there is a "recv.priority" 
+    start = carrier.find("+recv.priority");
+    if(start == std::string::npos)
+    {
+        if(carrier.length())
+            carrier += "+recv.priority";
+        else
+            carrier = "tcp+recv.priority";
+    }
+
+    yarp::os::Property options;
+    options.fromString(excitation.c_str()); 
+    yarp::os::Bottle exc = options.findGroup("ex");
+    string strLink = "+(ex";
+    bool bEmpty = true;
+    for(int i=0; i<exc.size(); i++)
+    {
+        Value v = exc.get(i);
+        if(v.isList() && (v.asList()->size()>=2))
+        {
+            Bottle* b = v.asList();
+            if(!compareString(b->get(0).asString().c_str(), szLink))
+            {
+                strLink += string(" (") + b->get(0).asString().c_str();
+                char dummy[64];
+                sprintf(dummy, " %d)", (int)b->get(1).asDouble());
+                strLink += dummy; 
+                bEmpty = false;
+            }
+        }
+    }
+
+    if(value != 0)
+    {
+        strLink += string(" (") + szLink;
+        char dummy[64];
+        sprintf(dummy, " %d)", value);
+        strLink += dummy;
+        bEmpty = false;
+    }
+    strLink += ")";
+
+    if(!bEmpty)    
+        carrier += strLink;
+
+    // updating carrier
+    con.setCarrier(carrier.c_str());
+    //updateConnectionOfApplication(application, *arrow->getConnection(), con);
+}
+
+
+
+/**
+ * updating the connections of an application with the coresponding 
+ * behavioral model. 
+ * - related connections will be updated with the proper priority carrier parameters
+ * - new auxuilary connections may be added to the connection list.
+ */
+bool KnowledgeBase::updateApplication(Application* app, BehaviorModel& model)
+{
+    __CHECK_NULLPTR(app);
+
+    // first remove all excitations from connections
+    //  remove all auxilary connections
+    for(int i=0; i<app->connectionCount(); i++)
+    {   
+        Connection& con = app->getConnectionAt(i);
+        if(isAuxilaryConnection(con))
+            removeConnectionFromApplication(app, con);
+        else            
+            resetArbitratedConnection(con);        
+    }        
+
+    //app->removeAllArbitrator();
+
+    vector<Arbitrator>& arbitrators = model.getArbitrators();
+    vector<Arbitrator>::iterator itr;
+    for(itr=arbitrators.begin(); itr!=arbitrators.end(); itr++)
+    {
+        Arbitrator& arb = (*itr);
+        if(!arb.trainWeights(false))
+            return false;
+
+        if(!arb.validate(false))
+            return false;
+
+        //printf("\n-----------------------------------------------\n");
+        //printf("%s:\n",arb.getPort() );        
+        map<std::string, std::string>& rules = arb.getRuleMap();
+        map<std::string, std::string>::iterator jtr;
+        for(jtr=rules.begin(); jtr!=rules.end(); jtr++)
+        {        
+            //printf("\t%s = %s\n", jtr->first.c_str(), jtr->second.c_str());
+            double bias = arb.getBias(jtr->first.c_str());
+            map<std::string, double>& alphas = arb.getAlphas(jtr->first.c_str());
+            map<std::string, double>::iterator atr;
+            //printf("\tbias=%.2f\n", bias);
+            // setting bias
+            Connection& con = getArbitratedConnection(app, jtr->first.c_str(), arb.getPort());
+            setArbitratedBias(con, bias*10); 
+            
+            // setting the exitation from other connection to this connection
+            for(atr=alphas.begin(); atr!=alphas.end(); atr++)
+            {
+                Connection& excitator = getArbitratedConnection(app, atr->first.c_str(), arb.getPort());
+                setArbitratedExcitation(excitator, jtr->first.c_str(), atr->second*10);
+                //printf("\t%s = %.2f\n", atr->first.c_str(), atr->second);
+            }    
+        }
+        //addArbitratorToApplication(app, arb);
+    }
+
+    return true;
+}
 
 bool KnowledgeBase::updateApplication(Application* app,
                             ApplicationInterface* iapp )

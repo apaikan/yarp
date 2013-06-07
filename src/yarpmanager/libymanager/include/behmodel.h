@@ -38,6 +38,8 @@ public:
     bool createFrom(BehModelLoader& bloader);
     vector<Arbitrator>& getArbitrators(void);
 
+    Graph& getGraph(void) { return behGraph; }
+
 private:
     Arbitrator& getArbitrator(const char* port);
     void getInhibitors(Behavior& behavior, 

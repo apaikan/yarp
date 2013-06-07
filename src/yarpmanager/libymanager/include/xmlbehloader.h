@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __XMLMODLOADER__
-#define __XMLMODLOADER__
+#ifndef __XMLBEHMODELLOADER__
+#define __XMLBEHMODELLOADER__
 
 #include "ymm-types.h" 
 #include "behavior.h"
@@ -62,4 +62,4 @@ private:
  
 //}
 
-#endif //__XMLMODLOADER__
+#endif //__XMLBEHMODELLOADER__

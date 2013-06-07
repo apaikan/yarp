@@ -61,7 +61,7 @@ void Arbitrator::removeRule(const char* con)
 }
 
 
-bool Arbitrator::trainWeights(const char* opnd)
+bool Arbitrator::trainWeights(const char* opnd, bool restricted)
 {
     __CHECK_NULLPTR(opnd);
 
@@ -77,9 +77,12 @@ bool Arbitrator::trainWeights(const char* opnd)
     }
 
     BinaryExpParser parser;
-    std::map<string, string>::iterator itr;
-    for(itr=rules.begin(); itr!=rules.end(); itr++)
-        parser.addRestrictedOperand((itr->first).c_str());         
+    if(restricted)
+    {
+        std::map<string, string>::iterator itr;
+        for(itr=rules.begin(); itr!=rules.end(); itr++)
+            parser.addRestrictedOperand((itr->first).c_str());         
+    }
 
     // parsing the compact logic
     rule = string(opnd) + " = " + rule;
@@ -114,23 +117,23 @@ bool Arbitrator::trainWeights(const char* opnd)
     return true;
 }
 
-bool Arbitrator::trainWeights(void)
+bool Arbitrator::trainWeights(bool restricted)
 {
     biases.clear();
     alphas.clear();
     bool bAllOk = true;
     std::map<string, string>::iterator itr;
     for(itr=rules.begin(); itr!=rules.end(); itr++)
-        bAllOk &= trainWeights((itr->first).c_str());         
+        bAllOk &= trainWeights((itr->first).c_str(), restricted);
 
     return bAllOk;
 }
 
-bool Arbitrator::validate(void)
+bool Arbitrator::validate(bool restricted)
 {
     ErrorLogger* logger  = ErrorLogger::Instance();
 
-    if(!trainWeights())
+    if(!trainWeights(restricted))
         return false;
 
 #ifdef WITH_YARPMATH        

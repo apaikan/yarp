@@ -11,7 +11,9 @@
 #include <string.h>
 #include "ymanager.h"
 #include "xmlapploader.h"
+#include "xmlbehloader.h"
 #include "application.h"
+#include "behmodel.h"
 #include "ymm-dir.h"
 
 /*
@@ -98,6 +100,8 @@ Options:\n\
   --silent                Do not print the status messages (should be used with --application)\n\
   --exit                  Immediately exit after executing the commands (should be used with --application)\n\
   --from <conf>           Configuration file name\n\
+  --update <behavior>     Update an application with the specified behvaioral model (should be used with --application)\n\
+  --behgraph <behavior>   Generate a graphviz-dot graph of the behavioral model\n\
   --version               Show current version\n\
   --help                  Show help\n"
 
@@ -311,6 +315,23 @@ YConsoleManager::YConsoleManager(int argc, char* argv[]) : Manager()
         sigaction (SIGTERM, &new_action, NULL);
 #endif
 
+    if(config.check("behgraph"))
+    {
+        string modelFileName = config.find("behgraph").asString().c_str();
+        XmlBehModelLoader behLoader(modelFileName.c_str());
+        BehaviorModel model;
+        if(!model.createFrom(behLoader))
+        {
+            reportErrors();
+            return;
+        }
+        string genFile = modelFileName + ".dot";        
+        exportBehaviorDotGraph(model.getGraph(), genFile.c_str() );
+        reportErrors();
+        return;
+    }
+
+
     if(config.check("application"))
     {
         XmlAppLoader appload(config.find("application").asString().c_str());
@@ -329,6 +350,16 @@ YConsoleManager::YConsoleManager(int argc, char* argv[]) : Manager()
 
                 if(loadApplication(application->getName()))
                 {
+                    if(config.check("update"))
+                    {
+                        string modelFileName = config.find("update").asString().c_str();
+                        updateApplication(application->getName(), modelFileName.c_str());
+                        string genFile = "GENERATED-" + string(application->getXmlFile());
+                        saveApplication(application->getName(), genFile.c_str() );
+                        reportErrors();
+                        return;
+                    }
+
                     if(!config.check("silent"))
                         which();
 

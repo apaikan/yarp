@@ -322,6 +322,9 @@ public:
     Arbitrator& getArbitratorAt(int index){ return arbitrators[index]; }
     Arbitrator& addArbitrator(Arbitrator &arb);
     bool removeArbitrator(Arbitrator& arb);
+    void removeAllArbitrator(void) {
+        arbitrators.clear();
+    }
 
     void setOwner(Node* owner){ appOwner = owner; }
     Node* owner(void) { return appOwner; }

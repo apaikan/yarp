@@ -82,9 +82,9 @@ public:
 
     void addRule(const char* con, const char* rule);
     void removeRule(const char* con);
-    bool trainWeights(const char* opnd);
-    bool trainWeights(void);
-    bool validate(void);
+    bool trainWeights(const char* opnd, bool restricted=true);
+    bool trainWeights(bool restricted=true);
+    bool validate(bool restricted=true);
 
 protected:
 

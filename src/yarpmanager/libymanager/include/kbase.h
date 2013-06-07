@@ -19,6 +19,7 @@
 #include "resource.h"
 #include "logicresource.h"
 #include "primresource.h"
+#include "behmodel.h"
 #include <string.h>
 #include <algorithm>
 
@@ -50,6 +51,7 @@ public:
                     AppLoader* _apploader, 
                     ResourceLoader* _resloader);
     bool addApplication(Application* application, char* szAppName_=NULL);
+    bool updateApplication(Application* app, BehaviorModel& model);
     bool addModule(Module* module);
     bool addResource(GenericResource* resource);
     bool removeApplication(Application* application);
@@ -180,6 +182,12 @@ private:
     InputData* findInputByPort(Graph& graph, const char* szPort);
     GenericResource* findResByName(Graph& graph, const char* szName);
     Module* findOwner(Graph& graph, InputData* input); 
+
+    Connection& getArbitratedConnection(Application* app, const char* from, const char* to);
+    void resetArbitratedConnection(Connection &con);
+    void setArbitratedBias(Connection &con, int bias);
+    void setArbitratedExcitation(Connection& con, const char* szLink, int value);
+    bool isAuxilaryConnection(Connection& con);
 
 };
 
