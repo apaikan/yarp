@@ -14,6 +14,7 @@
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
 using namespace yarp::math;
+#define WITH_ITERATION
 #endif 
 
 #include "PriorityCarrier.h"
@@ -245,8 +246,11 @@ bool PriorityGroup::recalculate(double t)
     B.resize(nConnections, 1);
     Y.resize(nConnections, 1);
     InvA.resize(nConnections, nConnections);
+#ifdef WITH_ITERATION
+    InvA.zero();
+#else
     InvA.eye();
-
+#endif
     int row = 0;
     for(PeerRecord::iterator rowItr=peerSet.begin(); rowItr!=peerSet.end(); rowItr++)
     {
@@ -269,7 +273,11 @@ bool PriorityGroup::recalculate(double t)
                     Bottle* b = v.asList();
                     // an exitatory link to this connection
                     if(peer->sourceName == b->get(0).asString().c_str())
+#ifdef WITH_ITERATION
+                        InvA(row,col) = (b->get(1).asDouble()/10.0)*xi;
+#else
                         InvA(row,col) = -(b->get(1).asDouble()/10.0)*xi;
+#endif                        
                 }
             }
             col++;
@@ -279,6 +287,31 @@ bool PriorityGroup::recalculate(double t)
 
     //fprintf(stdout, "A:\n %s\n", InvA.toString(1).c_str());
 
+#ifdef WITH_ITERATION
+    E.resize(nConnections, 1);
+    Yt.resize(nConnections, 1);
+    Yt.zero();
+
+    bool bNoError = false;
+    for(int i=0; i<50 && !bNoError; i++)
+    {
+        Y = InvA * Yt + B;
+        for(int j=0; j<nConnections; j++)
+            if(Y(j, 0) < 0)
+                Y(j, 0) = 0;
+        E = Y - Yt;
+        bNoError = true;        
+        for(int j=0; j<nConnections && bNoError; j++)
+            if(E(j, 0) != 0)
+                bNoError = false;
+        Yt = Y;
+    }
+    if(!bNoError)
+    {
+        YARP_LOG_ERROR("Inconsistent regulation! maximum number of iterations has been reached");
+        return false;
+    }    
+#else
     // calclulating the determinant
     double determinant = yarp::math::det(InvA);
     if(determinant == 0)
@@ -294,10 +327,10 @@ bool PriorityGroup::recalculate(double t)
     //fprintf(stdout, "X:\n %s\n", X.toString(1).c_str());
     //fprintf(stdout, "B:\n %s\n", B.toString(1).c_str());
     //fprintf(stdout, "Y:\n %s\n", Y.toString(1).c_str());
-    
-    return true;
-#endif
 
+#endif // WITH_ITERATION
+    return true;    
+#endif // WITH_YARPMATH
 }
 
 // Decide whether data should be accepted, for real.

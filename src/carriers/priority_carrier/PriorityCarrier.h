@@ -56,6 +56,9 @@ public:
     yarp::sig::Matrix B;            // matrix of biases B in the equation y(t) = [(I-A)^(-1) * B] .*x(t)
     yarp::sig::Matrix Y;            // matrix y(t) 
     yarp::sig::Matrix X;            // matrix x(t)
+    yarp::sig::Matrix Yt;           // matrix y(t-1) is used with iterations
+    yarp::sig::Matrix E;            // matrix E(t) is used with iterations
+
     //yarp::os::Semaphore semDebug;   // this semaphor is used only when debug mode is active
                                     // to control the access to matrices from debug thread
 };
