@@ -560,6 +560,15 @@ int Companion::cmdName(int argc, char *argv[]) {
     }
     if (reply.size()==1&&reply.get(0).isString()) {
         printf("%s", reply.get(0).asString().c_str());
+    } else if (reply.get(0).isVocab() && reply.get(0).asVocab()==VOCAB4('m','a','n','y')) {
+        for (int i=1; i<reply.size(); i++) {
+            Value& v = reply.get(i);
+            if (v.isString()) {
+                printf("  %s\n", v.asString().c_str());
+            } else {
+                printf("  %s\n", v.toString().c_str());
+            }
+        }
     } else {
         printf("%s\n", reply.toString().c_str());
     }
@@ -1193,7 +1202,7 @@ int Companion::cmdMake(int argc, char *argv[]) {
     f.add("# the current directory.");
     f.add("# Replace \"yarpy\" with whatever your executable should be called.");
     f.add("");
-    f.add("cmake_minimum_required(VERSION 2.6.4)");
+    f.add("cmake_minimum_required(VERSION 2.8.7)");
     f.add("");
     f.add("set(KEYWORD \"yarpy\")");
     f.add("");
