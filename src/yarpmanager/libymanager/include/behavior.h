@@ -89,6 +89,8 @@ public:
     int ownerCount(void) { return owners.size(); }
     const Node* getOwnerAt(int index) { return owners[index]; }
 
+    bool hasParent(const char* parentName);
+
     void clear(void) {
         strName.clear();
         configurations.clear();
@@ -152,6 +154,8 @@ public:
     void addOwner(Node* owner) { if(owner) owners.push_back(owner); }
     int ownerCount(void) { return owners.size(); }
     const Node* getOwnerAt(int index) { return owners[index]; }
+
+    bool hasParent(const char* parentName);
 
     void clear(void) {
         strName.clear();

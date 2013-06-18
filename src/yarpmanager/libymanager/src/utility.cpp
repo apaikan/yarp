@@ -457,7 +457,19 @@ void searchReplace(string& str, const string& oldStr, const string& newStr)
 }
 
 
-void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
+/*
+const char* getInheritedName(const char* nodeName)
+{
+    Node* owner = NULL;
+    BehaviorGroup* group = dynamic_cast<BehaviorGroup*>(behGraph.getNode(nodeName));
+    Behavior* behavior = dynamic_cast<Behavior*>(behGraph.getNode(nodeName));
+    if(group && group->getOwner())
+        parent = 
+
+}
+*/
+
+void dotDrawGroup(Graph& graph, ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
 {
     dot<<endl;
     string label;
@@ -465,11 +477,13 @@ void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
         label = string(prefix) + group->getLabel();        
     else
         label = group->getLabel();  
-	dot<<"subgraph "<<"\"cluster "<<label<<"\" {";
+	dot<<"subgraph "<<"\"cluster_"<<label<<"\" {";
     dot<<"label=<"<<endl;
     dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
     dot<<"<TR><TD>"<<group->getName()<<"</TD></TR>"<<endl;
-    dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<group->getCondition()<<" </font></TD></TR>"<<endl;
+    string str = group->getCondition();
+    searchReplace(str, "&", "&amp;");
+    dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<str<<" </font></TD></TR>"<<endl;
     dot<<"</TABLE>>"<<endl;
     dot<<"color=bisque4; fillcolor=cornsilk; peripheries=1; style=filled; penwidth=2;"<<endl;
     for(int i=0; i<group->sucCount(); i++)
@@ -478,29 +492,42 @@ void dotDrawGroup(ofstream& dot, BehaviorGroup* group, const char* prefix=NULL)
         BehaviorGroup* chgroup = dynamic_cast<BehaviorGroup*>(node);
         Behavior* behavior= dynamic_cast<Behavior*>(node);
         if(chgroup)
-            dotDrawGroup(dot, chgroup, group->getLabel());
+            dotDrawGroup(graph, dot, chgroup, group->getLabel());
         else if(behavior) 
         {          
             string strLabel = label + string(behavior->getLabel());
             dot<<"\""<<strLabel<<"\"";
             dot<<"[label=<"<<endl;            
-            dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
-            dot<<"<TR><TD>"<<behavior->getName()<<"</TD></TR>"<<endl;
-            //string cond = behavior->getInheritedCondition();
-            vector<string> conds = behavior->getInheritedCondition();
-            for(size_t i=0; i<conds.size(); i++)
+            dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"5\" CELLPADDING=\"0\">"<<endl;
+            dot<<"<TR><TD colspan=\"2\" align=\"center\">"<<behavior->getName()<<"</TD></TR>"<<endl;
+            string str = behavior->getCondition();
+            searchReplace(str, "&", "&amp;");
+            dot<<"<TR><TD colspan=\"2\" align=\"center\"> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<str<<" </font></TD></TR>"<<endl;
+            for(int i=0; i<behavior->configurationCount(); i++)
             {
-                string str = conds[i];
-                searchReplace(str, "&", "&amp;");
-                dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<str<<" </font></TD></TR>"<<endl;
+                Configuration conf = behavior->getConfigurationAt(i);
+                dot<<"<TR>"<<endl;
+                dot<<"<TD align=\"left\"><font POINT-SIZE=\"8\" COLOR=\"Blue\">@ "<<conf.getAt()<<"</font>"<<"</TD>"<<endl;               
+                dot<<"<TD align=\"left\"><font POINT-SIZE=\"8\"> : </font><font POINT-SIZE=\"8\" COLOR=\"darkgreen\">"<<conf.getPort()<<"</font>"<<"</TD>"<<endl;
+                dot<<"</TR>"<<endl;
             }                
             dot<<"</TABLE>>"<<endl;
-            dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
+            dot<<" shape=rect, color=royalblue, fillcolor=whitesmoke, peripheries=1, style=filled, penwidth=2];"<<endl;
             for(int j=0; j<behavior->inhibitionCount(); j++)
             {
                 dot<<"\""<<strLabel<<"\" -> ";
-                dot<<"\""<<label+string(behavior->getInhibitionAt(j))<<"\"";
-                dot<<" [label=\"\" color=orangered3];"<<endl;               
+                BehaviorGroup* group = dynamic_cast<BehaviorGroup*>(graph.getNode(behavior->getInhibitionAt(j)));
+                if(!group || (group->sucCount()==0))
+                {
+                    dot<<"\""<<label+behavior->getInhibitionAt(j)<<"\"";
+                    dot<<" [label=\"\" color=orangered3];"<<endl;
+                }
+                else
+                {
+                    string strChildName = label + string(group->getLabel()) + string(group->getLinkAt(0).to()->getLabel());
+                    dot<<"\""<<strChildName.c_str()<<"\"";
+                    dot<<" [label=\"\" color=orangered3 lhead=cluster_"<<label+string(group->getLabel())<<" ];"<<endl;
+                }
             }
         }
     }
@@ -517,10 +544,11 @@ bool exportBehaviorDotGraph(Graph& graph, const char* szFileName)
     
     dot<<"digraph G {"<<endl;
     dot<<"rankdir=LR;"<<endl;
-    dot<<"ranksep=0.2;"<<endl;
-    dot<<"nodesep=0.2;"<<endl;
+    dot<<"ranksep=0.5;"<<endl;
+    dot<<"nodesep=1.0;"<<endl;
     dot<<"splines=true;"<<endl;
     dot<<"sep=\"+15,15\";"<<endl;
+    dot<<"compound=true;"<<endl;
 
     for(GraphIterator itr=graph.begin(); itr!=graph.end(); itr++)   
     {
@@ -528,7 +556,7 @@ bool exportBehaviorDotGraph(Graph& graph, const char* szFileName)
             case GROUP:{
                     BehaviorGroup* group = (BehaviorGroup*)(*itr);
                     if(group->ownerCount() == 0)
-                        dotDrawGroup(dot, group);
+                        dotDrawGroup(graph, dot, group);
                     break;
             }
             case BEHAVIOR:{
@@ -537,18 +565,37 @@ bool exportBehaviorDotGraph(Graph& graph, const char* szFileName)
                     {
                         dot<<"\""<<behavior->getLabel()<<"\"";
                         dot<<"[label=<"<<endl;            
-                        dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">"<<endl;
-                        dot<<"<TR><TD>"<<behavior->getName()<<"</TD></TR>"<<endl;
-                        vector<string> conds = behavior->getInheritedCondition();
-                        for(size_t i=0; i<conds.size(); i++)
-                            dot<<"<TR><TD> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<conds[i]<<" </font></TD></TR>"<<endl;
+                        dot<<"<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"5\" CELLPADDING=\"0\">"<<endl;
+                        dot<<"<TR><TD colspan=\"2\" align=\"center\">"<<behavior->getName()<<"</TD></TR>"<<endl;
+                        string str = behavior->getCondition();
+                        searchReplace(str, "&", "&amp;");
+                        dot<<"<TR><TD colspan=\"2\" align=\"center\"> <font POINT-SIZE=\"10\" COLOR=\"red\"> "<<str<<" </font></TD></TR>"<<endl;
+                        for(int i=0; i<behavior->configurationCount(); i++)
+                        {
+                            Configuration conf = behavior->getConfigurationAt(i);
+                            dot<<"<TR>"<<endl;
+                            dot<<"<TD align=\"left\"><font POINT-SIZE=\"8\" COLOR=\"Blue\">@ "<<conf.getAt()<<"</font>"<<"</TD>"<<endl;               
+                            dot<<"<TD align=\"left\"><font POINT-SIZE=\"8\"> : </font><font POINT-SIZE=\"8\" COLOR=\"darkgreen\">"<<conf.getPort()<<"</font>"<<"</TD>"<<endl;
+                            dot<<"</TR>"<<endl;
+                        }                
                         dot<<"</TABLE>>"<<endl;
-                        dot<<" shape=rect, color=royalblue, fillcolor=steelblue1, peripheries=1, style=filled, penwidth=2];"<<endl;
+                        dot<<" shape=rect, color=royalblue, fillcolor=whitesmoke, peripheries=1, style=filled, penwidth=2];"<<endl;
                         for(int j=0; j<behavior->inhibitionCount(); j++)
                         {
                             dot<<"\""<<behavior->getLabel()<<"\" -> ";
-                            dot<<"\""<<behavior->getInhibitionAt(j)<<"\"";
-                            dot<<" [label=\"\" color=orangered3];"<<endl;                
+
+                            BehaviorGroup* group = dynamic_cast<BehaviorGroup*>(graph.getNode(behavior->getInhibitionAt(j)));
+                            if(!group || (group->sucCount()==0))
+                            {
+                                dot<<"\""<<behavior->getInhibitionAt(j)<<"\"";
+                                dot<<" [label=\"\" color=orangered3];"<<endl;
+                            }
+                            else
+                            {
+                                string strChildName = string(group->getLabel()) + string(group->getLinkAt(0).to()->getLabel());
+                                dot<<"\""<<strChildName.c_str()<<"\"";
+                                dot<<" [label=\"\" color=orangered3 lhead=cluster_"<<group->getLabel()<<" ];"<<endl;
+                            }
                         }
                     } 
                     break;

@@ -1252,7 +1252,7 @@ bool KnowledgeBase::updateApplication(Application* app, BehaviorModel& model)
             resetArbitratedConnection(con);        
     }        
 
-    //app->removeAllArbitrator();
+    app->removeAllArbitrator();
 
     vector<Arbitrator>& arbitrators = model.getArbitrators();
     vector<Arbitrator>::iterator itr;
@@ -1288,7 +1288,7 @@ bool KnowledgeBase::updateApplication(Application* app, BehaviorModel& model)
                 //printf("\t%s = %.2f\n", atr->first.c_str(), atr->second);
             }    
         }
-        //addArbitratorToApplication(app, arb);
+        addArbitratorToApplication(app, arb);
     }
 
     return true;

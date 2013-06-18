@@ -61,6 +61,20 @@ void Behavior::swap(const Behavior &beh)
 }
 
 
+bool Behavior::hasParent(const char* parentName)
+{
+    bool bParent = false;
+    vector<Node*>::iterator itr;
+    for(itr = owners.begin(); itr != owners.end(); itr++) 
+    {
+        BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
+        bParent |= (strcmp(parent->getName(), parentName) == 0); 
+        bParent |= parent->hasParent(parentName);
+    } 
+    
+    return bParent;
+}
+
 const vector<string>& Behavior::getInheritedCondition(void)
 {
     string tmpCond;
@@ -138,6 +152,20 @@ void BehaviorGroup::swap(const BehaviorGroup &group)
     behaviors = group.behaviors;
     groups = group.groups;
     conditions = group.conditions;
+}
+
+bool BehaviorGroup::hasParent(const char* parentName)
+{
+    bool bParent = false;
+    vector<Node*>::iterator itr;
+    for(itr = owners.begin(); itr != owners.end(); itr++) 
+    {
+        BehaviorGroup* parent = dynamic_cast<BehaviorGroup*>(*itr);
+        bParent |= (strcmp(parent->getName(), parentName) == 0); 
+        bParent |= parent->hasParent(parentName);
+    } 
+    
+    return bParent;
 }
 
 

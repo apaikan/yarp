@@ -114,6 +114,7 @@ bool BehaviorModel::createFrom(BehModelLoader& bloader)
             }
         }
     }
+
     return true;
 }
 
@@ -129,6 +130,7 @@ Arbitrator& BehaviorModel::getArbitrator(const char* port)
     return arbitrators.back();
 }
 
+
 void BehaviorModel::getInhibitors(Behavior& behavior, Configuration& conf, 
                                   vector<string>& inhibitors)
 {
@@ -139,9 +141,10 @@ void BehaviorModel::getInhibitors(Behavior& behavior, Configuration& conf,
         {
             // cheking the inhibtion tags
             for(int i=0; i<beh->inhibitionCount(); i++)
-            {
-                // there is a behvaior which inhibits the current behavior 
-                if(strcmp(beh->getInhibitionAt(i), behavior.getName()) == 0)
+            {             
+                // there is a behvaior which inhibits the current behavior                 
+                if((strcmp(beh->getInhibitionAt(i), behavior.getName()) == 0) || 
+                  behavior.hasParent(beh->getInhibitionAt(i)) )
                 {
                     for(int i=0; i<beh->configurationCount(); i++)
                     {
@@ -218,6 +221,7 @@ vector<Arbitrator>& BehaviorModel::getArbitrators(void)
         Behavior* behavior = dynamic_cast<Behavior*>(*itr);
         if(behavior)
         {
+            //printf("%s:\n", behavior->getName());
             for(int i=0; i<behavior->configurationCount(); i++)
             {
                 Configuration conf = behavior->getConfigurationAt(i);
@@ -234,6 +238,7 @@ vector<Arbitrator>& BehaviorModel::getArbitrators(void)
                             rule = rule + string(" & ~ ") + inhibitors[i];
                     
                     vector<string> conds = behavior->getInheritedCondition();
+                    //printf("\t%s: %s\n", conf.getPort(), conds[0].c_str());
                     if(conds.size())
                     {
                         if(rule.length())
@@ -242,9 +247,16 @@ vector<Arbitrator>& BehaviorModel::getArbitrators(void)
                             rule = conds[0];
                     }
                     if(rule.length())
-                        arb.addRule(conf.getPort(), rule.c_str());
+                    {
+                        //printf("\t@%s, %s : %s\n", conf.getAt(), conf.getPort(), rule.c_str());
+                        string old = arb.getRule(conf.getPort());
+                        if(old.length())
+                            rule = string("(") + old + string(") | (") + rule + string(")"); 
+                        arb.addRule(conf.getPort(), rule.c_str());                     
+                    }   
                 }
             }
+            //printf("\n\n");
         }
     } 
 
