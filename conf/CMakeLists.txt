@@ -29,18 +29,22 @@ set(YARP_CMAKE_FILES YarpPlugin.cmake
                      FindGooCanvas.cmake
                      FindGooCanvasMM.cmake
                      FindGSL.cmake
-                     FindGthread.cmake
                      FindGtkDatabox.cmake
                      FindGtkDataboxMM.cmake
-                     FindGtkMM.cmake
-                     FindGtkMMUnix.cmake
-                     FindGtkMMWin32.cmake
-                     FindGtkPlus.cmake
-                     FindGtkWin32.cmake
                      FindOpenCV.cmake
                      FindPortAudio.cmake
                      FindSQLite.cmake
                      FindTinyXML.cmake)
+
+if(NOT YARP_NO_DEPRECATED)
+   list(APPEND YARP_CMAKE_FILES deprecated/FindGthread.cmake
+                                deprecated/FindGtkMM.cmake
+                                deprecated/FindGtkMMUnix.cmake
+                                deprecated/FindGtkMMWin32.cmake
+                                deprecated/FindGtkPlus.cmake
+                                deprecated/FindGtkWin32.cmake)
+endif()
+
 install(FILES ${YARP_CMAKE_FILES}
        COMPONENT scripts
        DESTINATION share/yarp/cmake)

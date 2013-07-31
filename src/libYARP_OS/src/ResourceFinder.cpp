@@ -634,7 +634,7 @@ public:
                 Bottle paths;
                 ResourceFinderOptions opts2;
                 prependResourceType(app,"contexts");
-                opts2.searchLocations = (ResourceFinderOptions::SearchLocations)(opts.searchLocations & ~(ResourceFinderOptions::Context|ResourceFinderOptions::ClassicContext|ResourceFinderOptions::NearMainConfig));
+                opts2.searchLocations = (ResourceFinderOptions::SearchLocations)ResourceFinderOptions::Default;
                 findFileBaseInner(config,app.c_str(),true,allowPathd,paths,opts2,doc,"context");
                 appendResourceType(paths,resourceType);
                 for (int j=0; j<paths.size(); j++) {
@@ -754,7 +754,8 @@ public:
             // Nested search to locate robot directory
             Bottle paths;
             ResourceFinderOptions opts2;
-            opts2.searchLocations = (ResourceFinderOptions::SearchLocations)(opts.searchLocations & ~(ResourceFinderOptions::Robot|ResourceFinderOptions::Context|ResourceFinderOptions::ClassicContext|ResourceFinderOptions::NearMainConfig));
+            opts2.searchLocations = (ResourceFinderOptions::SearchLocations)(ResourceFinderOptions::User | ResourceFinderOptions::Sysadmin | ResourceFinderOptions::Installed);
+            //opts2.searchLocations = (ResourceFinderOptions::SearchLocations)(opts.searchLocations & ~(ResourceFinderOptions::Robot|ResourceFinderOptions::Context|ResourceFinderOptions::ClassicContext|ResourceFinderOptions::NearMainConfig));
             opts2.resourceType = "robots";
             findFileBaseInner(config,robot.c_str(),true,allowPathd,paths,opts2,doc,"robot");
             appendResourceType(paths,resourceType);
