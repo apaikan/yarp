@@ -12,19 +12,17 @@
 
 #include <yarp/os/all.h>
 
-#include <yarp/os/impl/AbstractCarrier.h>
+#include <yarp/os/AbstractCarrier.h>
 #include <yarp/os/Bytes.h>
 
 #include <string>
 #include <iostream>
 
-#include <yarp/os/impl/MpiStream.h>
+#include <yarp/os/MpiStream.h>
 
 namespace yarp {
     namespace os {
-        namespace impl {
-            class MpiCarrier;
-        }
+        class MpiCarrier;
     }
 }
 
@@ -32,19 +30,19 @@ namespace yarp {
  * Abstract base carrier for managing port communication via MPI.
  *
  */
-class yarp::os::impl::MpiCarrier : public AbstractCarrier {
+class yarp::os::MpiCarrier : public AbstractCarrier {
 protected:
     MpiStream* stream;
     MpiComm* comm;
-    String port;
-    String name, other, route;
-    String target;
+    ConstString port;
+    ConstString name, other, route;
+    ConstString target;
 public:
     MpiCarrier() ;
     virtual ~MpiCarrier();
     virtual void close() = 0;
     virtual Carrier *create() = 0;
-    virtual String getName() = 0;
+    virtual ConstString getName() = 0;
 
     virtual void createStream(bool sender) = 0;
 
@@ -60,32 +58,32 @@ public:
     virtual bool checkHeader(const Bytes& header);
 
 
-    virtual bool sendHeader(Protocol& proto);
-    virtual bool expectSenderSpecifier(Protocol& proto);
+    virtual bool sendHeader(ConnectionState& proto);
+    virtual bool expectSenderSpecifier(ConnectionState& proto);
 
-    virtual bool respondToHeader(Protocol& proto);
-    virtual bool expectReplyToHeader(Protocol& proto);
+    virtual bool respondToHeader(ConnectionState& proto);
+    virtual bool expectReplyToHeader(ConnectionState& proto);
 
 
     /////////////////////////////////////////////////
     // Payload time!
 
-    bool write(Protocol& proto, SizedWriter& writer) {
+    bool write(ConnectionState& proto, SizedWriter& writer) {
         writer.write(proto.os());
         return proto.os().isOk();
     }
 
-    virtual bool sendIndex(Protocol& proto, SizedWriter& writer) {
+    virtual bool sendIndex(ConnectionState& proto, SizedWriter& writer) {
         return true; }
-    virtual bool expectIndex(Protocol& proto) {
+    virtual bool expectIndex(ConnectionState& proto) {
         return true; }
 
     /////////////////////////////////////////////////
     // Acknowledgements, we don't do them
 
-    virtual bool sendAck(Protocol& proto) {
+    virtual bool sendAck(ConnectionState& proto) {
         return true; }
-    virtual bool expectAck(Protocol& proto) {
+    virtual bool expectAck(ConnectionState& proto) {
         return true; }
 
 };

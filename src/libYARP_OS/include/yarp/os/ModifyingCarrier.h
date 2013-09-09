@@ -10,14 +10,11 @@
 #ifndef _YARP2_MODIFYINGCARRIER_
 #define _YARP2_MODIFYINGCARRIER_
 
-#include <yarp/os/impl/AbstractCarrier.h>
-#include <yarp/os/impl/Protocol.h>
+#include <yarp/os/AbstractCarrier.h>
 
 namespace yarp {
     namespace os {
-        namespace impl {
-            class ModifyingCarrier;
-        }
+        class ModifyingCarrier;
     }
 }
 
@@ -26,16 +23,16 @@ namespace yarp {
  * These are not standalone carriers, they just tweak payload data
  * in custom ways.
  */
-class YARP_OS_impl_API yarp::os::impl::ModifyingCarrier : public AbstractCarrier {
+class YARP_OS_API yarp::os::ModifyingCarrier : public AbstractCarrier {
 public:
 
     virtual Carrier *create() = 0;
 
-    virtual String getName() = 0;
+    virtual ConstString getName() = 0;
 
     virtual bool checkHeader(const yarp::os::Bytes &header);
     virtual void getHeader(const yarp::os::Bytes &header);
-    virtual bool respondToHeader(Protocol& proto);
+    virtual bool respondToHeader(yarp::os::ConnectionState& proto);
     virtual bool modifiesIncomingData();
     virtual void setCarrierParams(const yarp::os::Property& params);
     virtual void getCarrierParams(yarp::os::Property& params);

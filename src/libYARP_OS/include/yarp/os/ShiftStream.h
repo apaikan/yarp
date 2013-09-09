@@ -10,13 +10,11 @@
 #ifndef _YARP2_SHIFTSTREAM_
 #define _YARP2_SHIFTSTREAM_
 
-#include <yarp/os/impl/TwoWayStream.h>
+#include <yarp/os/TwoWayStream.h>
 
 namespace yarp {
     namespace os {
-        namespace impl {
-            class ShiftStream;
-        }
+        class ShiftStream;
     }
 }
 
@@ -27,7 +25,7 @@ namespace yarp {
  * an optimized stream type with user-preferred properties and
  * trade-offs.
  */
-class YARP_OS_impl_API yarp::os::impl::ShiftStream : public TwoWayStream {
+class YARP_OS_API yarp::os::ShiftStream : public TwoWayStream {
 public:
     /**
      * Constructor.
@@ -61,12 +59,12 @@ public:
         return stream->getOutputStream();
     }
 
-    virtual const Address& getLocalAddress() {
+    virtual const Contact& getLocalAddress() {
         check();
         return (stream==NULL)?nullStream.getLocalAddress():(stream->getLocalAddress());
     }
 
-    virtual const Address& getRemoteAddress() {
+    virtual const Contact& getRemoteAddress() {
         check();
         return (stream==NULL)?nullStream.getRemoteAddress():(stream->getRemoteAddress());
     }

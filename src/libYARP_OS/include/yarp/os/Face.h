@@ -10,11 +10,9 @@
 #ifndef _YARP2_FACE_
 #define _YARP2_FACE_
 
-#include <yarp/os/impl/Address.h>
-#include <yarp/os/impl/InputProtocol.h>
-#include <yarp/os/impl/OutputProtocol.h>
-
-#include <yarp/os/impl/AuthHMAC.h>
+#include <yarp/os/Contact.h>
+#include <yarp/os/InputProtocol.h>
+#include <yarp/os/OutputProtocol.h>
 
 namespace yarp {
     namespace os {
@@ -32,7 +30,7 @@ public:
     /**
      * Constructor.
      */
-    Face() : auth() {};
+    Face() {};
 
     /**
      * Destructor.
@@ -49,7 +47,7 @@ public:
      * @return true on success.
      *
      */
-    virtual bool open(const Address& address) = 0;
+    virtual bool open(const Contact& address) = 0;
 
     /**
      *
@@ -77,7 +75,7 @@ public:
      * @return a protocol object to talk with, or NULL on failure.
      *
      */
-    virtual OutputProtocol *write(const Address& address) = 0;
+    virtual OutputProtocol *write(const Contact& address) = 0;
 
 
     /**
@@ -88,13 +86,9 @@ public:
      * @return an address
      *
      */
-    virtual Address getLocalAddress() {
-        return Address();
+    virtual Contact getLocalAddress() {
+        return Contact();
     }
-
-protected:
-
-    yarp::os::impl::AuthHMAC auth;
 };
 
 #endif

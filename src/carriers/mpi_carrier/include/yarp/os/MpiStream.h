@@ -13,13 +13,12 @@
 
 #include <yarp/os/all.h>
 
-#include <yarp/os/impl/TwoWayStream.h>
-#include <yarp/os/impl/String.h>
+#include <yarp/os/TwoWayStream.h>
+#include <yarp/os/ConstString.h>
 #include <yarp/os/Bytes.h>
 #include <yarp/os/ManagedBytes.h>
-#include <yarp/os/impl/NetType.h>
-#include <yarp/os/impl/Protocol.h>
-#include <yarp/os/impl/MpiComm.h>
+#include <yarp/os/NetType.h>
+#include <yarp/os/MpiComm.h>
 
 #include <string>
 #include <iostream>
@@ -27,9 +26,7 @@
 
 namespace yarp {
     namespace os {
-        namespace impl {
-            class MpiStream;
-        }
+        class MpiStream;
     }
 }
 
@@ -37,19 +34,19 @@ namespace yarp {
 /**
  * Abstract base class for port communication via MPI.
  */
-class yarp::os::impl::MpiStream : public TwoWayStream, public InputStream, public OutputStream {
+class yarp::os::MpiStream : public TwoWayStream, public InputStream, public OutputStream {
 protected:
     int readAvail, readAt;
     char* readBuffer;
     bool terminate;
-    String name;
-    yarp::os::impl::MpiComm* comm;
+    ConstString name;
+    yarp::os::MpiComm* comm;
 
-    Address local, remote;
+    yarp::os::Contact local, remote;
 public:
 
 
-    MpiStream(String name, MpiComm* comm);
+    MpiStream(ConstString name, MpiComm* comm);
     virtual ~MpiStream();
     virtual void close() = 0;
     virtual bool isOk();
@@ -58,8 +55,8 @@ public:
     virtual void write(const Bytes& b) = 0;
     virtual InputStream& getInputStream();
     virtual OutputStream& getOutputStream();
-    virtual const Address& getLocalAddress();
-    virtual const Address& getRemoteAddress();
+    virtual const yarp::os::Contact& getLocalAddress();
+    virtual const yarp::os::Contact& getRemoteAddress();
     void resetBuffer();
     virtual void reset() { resetBuffer();}
     virtual void beginPacket();
