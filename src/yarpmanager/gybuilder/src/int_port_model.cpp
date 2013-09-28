@@ -98,16 +98,19 @@ InternalPortModel::InternalPortModel(ApplicationWindow* parentWnd,
         else if(output->getPortType() == SERVICE_PORT)
         {
             bServicePort = true;
-            poly = Goocanvas::PolylineModel::create(0, PORT_SIZE/2.0, 15, PORT_SIZE/2.0);
+            poly = Goocanvas::PolylineModel::create(0, PORT_SIZE/2.0, 5, PORT_SIZE/2.0);
             poly->property_close_path().set_value(false);
             poly->property_line_width().set_value(1.0);
             poly->property_stroke_color().set_value("black");
             this->add_child(poly);
-            ellipse = Goocanvas::EllipseModel::create(10, PORT_SIZE/2.0, 5, 5);
-            ellipse->property_line_width().set_value(1.0);
-            ellipse->property_fill_color().set_value(strColor.c_str());
-            ellipse->property_stroke_color().set_value("black");
-            this->add_child(ellipse);
+            char str[128];
+            sprintf(str, "M10,2 a5,5 0 0,0 0,10");
+            printf("%s\n", str);
+            path = Goocanvas::PathModel::create(Glib::ustring(str));
+            path->property_line_width().set_value(1.0);
+            //path->property_fill_color().set_value(strColor.c_str());
+            path->property_stroke_color().set_value("black");
+            this->add_child(path);
         }
     }
 
@@ -152,19 +155,34 @@ Gdk::Point InternalPortModel::getContactPoint(ArrowModel* arrow)
     }
     else
     {
-        GooCanvasItemModel* model = (GooCanvasItemModel*) ellipse->gobj();    
-        if(model && canvas)
+        if(type == INPUTD)
         {
-            GooCanvasItem* item = goo_canvas_get_item(canvas, model); 
-            if(item)
+            GooCanvasItemModel* model = (GooCanvasItemModel*) ellipse->gobj();    
+            if(model && canvas)
             {
-                GooCanvasBounds bi;
-                goo_canvas_item_get_bounds(item, &bi);
-                if(type == INPUTD)
+                GooCanvasItem* item = goo_canvas_get_item(canvas, model); 
+                if(item)
+                {
+                    GooCanvasBounds bi;
+                    goo_canvas_item_get_bounds(item, &bi);                                                
                     return Gdk::Point((int)(bi.x1), (int)(bi.y2-5));
-                return Gdk::Point((int)(bi.x2), (int)(bi.y2-5));
-            }
-        }        
+                }
+            }        
+        }
+        else
+        {
+            GooCanvasItemModel* model = (GooCanvasItemModel*) path->gobj();    
+            if(model && canvas)
+            {
+                GooCanvasItem* item = goo_canvas_get_item(canvas, model); 
+                if(item)
+                {
+                    GooCanvasBounds bi;
+                    goo_canvas_item_get_bounds(item, &bi);
+                    return Gdk::Point((int)(bi.x2), (int)(bi.y2-5));
+                }
+            }  
+        }  
     }
     return Gdk::Point(-1, -1);
 }
@@ -219,8 +237,9 @@ bool InternalPortModel::onItemEnterNotify(const Glib::RefPtr<Goocanvas::Item>& i
     //this->property_stroke_color().set_value("DodgerBlue3");
     if(!bServicePort)
         poly->property_fill_color().set_value("LightSteelBlue");
-    else
+    else if(type == INPUTD)
         ellipse->property_fill_color().set_value("LightSteelBlue");
+        
     
     parentWindow->getRootModel()->add_child(tool);
     Gdk::Point pt = getContactPoint();
@@ -249,7 +268,7 @@ bool InternalPortModel::onItemLeaveNotify(const Glib::RefPtr<Goocanvas::Item>& i
         poly->property_stroke_color().set_value("black");
         poly->property_fill_color().set_value(strColor.c_str());
     }
-    else
+    else if(type == INPUTD)
         ellipse->property_fill_color().set_value(strColor.c_str());
 
     int id = parentWindow->getRootModel()->find_child(tool);
