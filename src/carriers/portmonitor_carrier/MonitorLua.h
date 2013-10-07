@@ -26,7 +26,11 @@ public:
     yarp::os::ConnectionReader& updateData(yarp::os::ConnectionReader& reader);    
 
 private:
+    bool getLocalFunction(const char *name);
+
+private:
     lua_State *L;
+
 };
 
 #endif //_MONITORLUA_INC_
