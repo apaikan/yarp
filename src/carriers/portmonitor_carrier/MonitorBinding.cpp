@@ -10,14 +10,9 @@
 #include "MonitorBinding.h"
 #include "MonitorLua.h"
 
+#include <yarp/os/ConstString.h>
+
 using namespace yarp::os;
-
-#ifdef _MSC_VER
-#define safe_printf sprintf_s
-#else
-#define safe_printf snprintf
-#endif 
-
 
 /**
  * Class MonitorBinding

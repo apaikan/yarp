@@ -1,48 +1,64 @@
--- call a C++ function
+
+-- loading lua-yarp binding library
 require("yarp")
 
 
+-- declaring 'PortMonitor' object as an empty table
+PortMonitor = {}
 
-function luamodifier_create()
-    print("in luamodifier_create")
+
+
+--
+-- create is called when the port monitor is created 
+-- @return Boolean
+--
+PortMonitor.create = function()
+    print("in create!")
     return true;
 end
 
 
-function luamodifier_configure() 
 
-    return true;
+-- 
+-- destroy is called when port monitor is destroyed
+--
+PortMonitor.destroy = function()
+    print("in destroy!")
 end
 
 
-function luamodifier_trig(bt)
 
-    --[[
-    print(type(bt))
-    mt = getmetatable(bt)
-    print(tostring(bt))
-    for k,v in pairs(mt) do
-        print("Global key", k, "value", v)
-    end
-    --]]
-    --
-    print(bt:get(0):asInt())
-    print(bt:get(1):asString())
-
+--
+-- update is called when the port receives new data
+-- @param reader The ConnectionReader
+--
+PortMonitor.update = function(reader)
+    bt = yarp.Bottle()
+    bt:read(reader)
     bt:addString("modified from Lua")
-    bt:addInt(45)
-    return bt
+    con = yarp.DummyConnector()
+    bt:write(con:getWriter())    
+    return con:getReader()
 end
 
 
-function luamodifier_destroy()
+--
+-- setparam is called on setCarrierParams by the port administrator  
+-- @param property The Property
+--
+PortMonitor.setparam = function(property) 
 
-    return true
+    return
 end
 
 
-function luamodifier_error(error_code) 
+--
+-- getparan is called on getCarrierParams by the port administrator
+-- @return property The Property
+--
+PortMonitor.getparam = function() 
 
-    return true
+    return property
 end
+
 
