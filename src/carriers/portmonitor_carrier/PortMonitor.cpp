@@ -51,26 +51,14 @@ void PortMonitor::setCarrierParams(const yarp::os::Property& params)
 {
     if(binder == NULL)
         return;
-
     binder->setParams(params);
-    //printf("setCarrierParams\n");
-    /*
-    yarp::os::Property property = params;
-    timeConstant = property.check("tc", Value(timeConstant)).asDouble();
-    */    
 }
 
 void PortMonitor::getCarrierParams(yarp::os::Property& params) 
 {
     if(binder == NULL)
         return;
-
     binder->getParams(params);
-    //printf("getCarrierParams\n");
-    /*
-    params.put("tc", timeConstant);
-    params.put("ex", excitation.toString());
-    */
 }
 
 

@@ -1,63 +1,64 @@
--- call a C++ function
+
+-- loading lua-yarp binding library
 require("yarp")
 
 
+-- declaring 'PortMonitor' object as an empty table
 PortMonitor = {}
 
---
--- this function is called when the port monitor is created \
---
--- alternatively :
--- function PortMonitor.create() ... end 
 
+
+--
+-- create is called when the port monitor is created 
+-- @return Boolean
+--
 PortMonitor.create = function()
     print("in create!")
     return true;
 end
 
 
+
 -- 
--- this function is called when monitor object is destroyed
+-- destroy is called when port monitor is destroyed
 --
 PortMonitor.destroy = function()
     print("in destroy!")
-    return
 end
+
 
 
 --
--- update is called every time the port receives new data
--- reader is of type 'ConnectionReader'
+-- update is called when the port receives new data
+-- @param reader The ConnectionReader
+--
 PortMonitor.update = function(reader)
-    
     bt = yarp.Bottle()
     bt:read(reader)
-    print("READ:", bt:toString())
-    return reader
+    bt:addString("modified from Lua")
+    con = yarp.DummyConnector()
+    bt:write(con:getWriter())    
+    return con:getReader()
 end
+
 
 --
 -- setparam is called on setCarrierParams by the port administrator  
--- param is of type 'Property'
-PortMonitor.setparam = function(param) 
+-- @param property The Property
+--
+PortMonitor.setparam = function(property) 
 
     return
 end
 
+
 --
 -- getparan is called on getCarrierParams by the port administrator
--- param should be of type 'Property'
+-- @return property The Property
+--
 PortMonitor.getparam = function() 
 
-    return param
+    return property
 end
 
---
--- not implemented yet
---
---[[
-PortMonitor.error = function(error_code) 
 
-    return true
-end
-]]--

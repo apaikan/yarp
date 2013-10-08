@@ -27,9 +27,9 @@ namespace yarp {
 
 /**
  *
- * Allow priority-based message selection.  Under development.
+ * Allow to monitor and modify port data from Lua script  Under development.
  * Affected by carrier modifiers.  Examples:
- *   tcp+recv.portmonitor
+ *   tcp+recv.portmonitor+script.lua+file.my_lua_script_file
  *
  */
 class yarp::os::PortMonitor : public yarp::os::ModifyingCarrier,
