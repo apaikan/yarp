@@ -33,7 +33,7 @@ MonitorLua::~MonitorLua()
         {
             if(lua_pcall(L, 0, 0, 0) != 0)
                 YARP_LOG_ERROR(lua_tostring(L, -1));
-            lua_pop(L,1);
+            //lua_pop(L,1);
         }
         // closing lua state handler
         lua_close(L);
@@ -189,6 +189,7 @@ bool MonitorLua::setParams(const yarp::os::Property& params)
             lua_pop(L, 1);
             return false;
         }
+        return true;
     }
 
     lua_pop(L,1);
@@ -244,4 +245,38 @@ bool MonitorLua::getLocalFunction(const char *name)
   return (lua_isfunction(L, -1) == 1);
 }
 
+
+bool MonitorLua::peerTrigged(void)
+{
+    if(getLocalFunction("trig"))
+    {
+        if(lua_pcall(L, 0, 0, 0) != 0)
+        {
+            YARP_LOG_ERROR(lua_tostring(L, -1));
+            lua_pop(L, 1);
+            return false;
+        }
+        return true;
+    }
+
+    lua_pop(L, 1);
+    return true;
+}
+
+bool MonitorLua::setAcceptConstraint(const char* constraint)
+{
+    if(!constraint)
+        return false;
+
+    MonitorLua::constraint = constraint;
+    return true;
+}
+
+bool MonitorLua::canAccept(void)
+{
+    if(constraint == "")
+        return true;
+
+    return true;
+}
 

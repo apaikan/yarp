@@ -10,6 +10,7 @@
 #ifndef _MONITORLUA_INC_
 #define _MONITORLUA_INC_
 
+#include <yarp/os/ConstString.h>
 #include "MonitorBinding.h"
 #include "lua_swig.h"
 
@@ -25,12 +26,16 @@ public:
     bool getParams(yarp::os::Property& params);
     bool acceptData(yarp::os::ConnectionReader& reader);
     yarp::os::ConnectionReader& updateData(yarp::os::ConnectionReader& reader);    
+    bool peerTrigged(void);
+    bool setAcceptConstraint(const char* constraint);
+    bool canAccept(void);
 
 private:
     bool getLocalFunction(const char *name);
 
 private:
-    lua_State *L;    
+    lua_State *L;   
+    yarp::os::ConstString constraint;
 
 };
 
