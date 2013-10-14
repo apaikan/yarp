@@ -39,7 +39,6 @@ MonitorLua::~MonitorLua()
         {
             if(lua_pcall(L, 0, 0, 0) != 0)
                 YARP_LOG_ERROR(lua_tostring(L, -1));
-            //lua_pop(L,1);
         }
         // closing lua state handler
         lua_close(L);
@@ -48,7 +47,6 @@ MonitorLua::~MonitorLua()
 
 bool MonitorLua::loadScript(const char* script_file)
 {
-    //printf("script : %s\n", script_file);
     //printf("%s (%d)\n", __FILE__, __LINE__);
     if(luaL_loadfile(L, script_file))
     {   
@@ -70,6 +68,11 @@ bool MonitorLua::loadScript(const char* script_file)
         return false;
     }
 
+    /**
+     * TODO: make PortMonitor's element read only!
+     */
+    lua_pushlightuserdata(L, this);
+    lua_setglobal(L, "PortMonitor_Owner");
 
     lua_getglobal(L, "PortMonitor");
     if(lua_istable(L, -1) == 0) 
@@ -295,15 +298,21 @@ bool MonitorLua::canAccept(void)
     return true;
 }
 
-
 int MonitorLua::setEvent(lua_State* L)
 {
     const char *event_name = luaL_checkstring(L, 1);
     if(event_name)
     {
+        lua_getglobal(L, "PortMonitor_Owner");
+        if(!lua_islightuserdata(L, -1))
+        {
+            YARP_LOG_ERROR("Cannot get PortMonitor_Owner");
+            return 0;
+        }
+        MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
         MonitorEventRecord& record = MonitorEventRecord::getInstance();
         record.lock();
-        record.setEvent(event_name, NULL);
+        record.setEvent(event_name, owner);
         record.unlock();
     }        
     return 0;
@@ -314,9 +323,16 @@ int MonitorLua::unsetEvent(lua_State* L)
     const char *event_name = luaL_checkstring(L, 1);
     if(event_name)
     {
+        lua_getglobal(L, "PortMonitor_Owner");
+        if(!lua_islightuserdata(L, -1))
+        {
+            YARP_LOG_ERROR("Cannot get PortMonitor_Owner");
+            return 0;
+        }
+        MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
         MonitorEventRecord& record = MonitorEventRecord::getInstance();
         record.lock();
-        record.unsetEvent(event_name, NULL);
+        record.unsetEvent(event_name, owner);
         record.unlock();
     }        
     return 0;

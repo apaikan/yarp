@@ -30,7 +30,7 @@ public:
     bool setAcceptConstraint(const char* constraint);
     bool canAccept(void);
 
-public:
+private:
     lua_State *L;   
     yarp::os::ConstString constraint;
 

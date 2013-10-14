@@ -10,8 +10,6 @@
 #ifndef MONITOREVENT_INC
 #define MONITOREVENT_INC
 
-#include <stdio.h>
-
 #include <yarp/os/ConstString.h>
 #include <yarp/os/Semaphore.h>
 #include <vector>
@@ -49,7 +47,6 @@ public:
     typedef typename vector_type::const_iterator const_iterator;
      
     bool setEvent(const char* name, MonitorBinding* owner) {
-        printf("setEvent: %s\n", name);
         if(findEvent(name, owner) != events.end())
             return false;        
         events.push_back(MonitorEvent(name, owner));
@@ -57,7 +54,6 @@ public:
     }
 
     bool unsetEvent(const char* name, MonitorBinding* owner) {
-        printf("setEvent: %s\n", name);
         MonitorEventRecord::iterator itr = findEvent(name, owner);
         if(itr == events.end())
             return true;
