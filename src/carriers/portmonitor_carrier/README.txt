@@ -41,6 +41,7 @@ Port Monitor carrier
        update = function(reader) ... return reader end, 
        setparam = function(param) ... end, 
        getparam = function() ... return param end
+       trig = function() ... end
   }
   
   Port monitor carrier looks for a global table name 'PortMonitor' in the user 

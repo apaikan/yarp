@@ -64,6 +64,16 @@ PortMonitor.accept = function(reader)
     return true
 end
 
+-- 
+-- trig is called when one of the peer portmonitors
+-- to the same input port receives data. this is 
+-- called before the update() method of the peer 
+-- portmoniotr is invoked
+--
+PortMonitor.trig = function()
+    --print("trigged!")
+end
+
 
 
 --
