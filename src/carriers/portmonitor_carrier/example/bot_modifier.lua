@@ -21,10 +21,6 @@ require("yarp")
 --      getparam = function() ... return param end
 -- }
 --
--- declaring 'PortMonitor' object as an empty table
---
-PortMonitor = {}
-
 
 
 --

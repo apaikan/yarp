@@ -13,6 +13,7 @@
 #include <yarp/os/ConnectionReader.h>
 #include <yarp/os/Property.h>
 
+#include "MonitorEvent.h"
 
 class MonitorBinding 
 {

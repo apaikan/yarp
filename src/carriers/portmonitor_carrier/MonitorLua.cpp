@@ -7,21 +7,27 @@
  *
  */
 
+#include <yarp/os/Network.h>
 #include <yarp/os/Log.h>
 #include <lua.hpp>
 #include "MonitorLua.h"
 
 using namespace yarp::os;
 
-
 /**
  * Class MonitorLua
  */
-
 MonitorLua::MonitorLua(void)
 {
     L = luaL_newstate();
     luaL_openlibs(L);
+
+    /**
+     * Registring extra functions for lua :
+     *  - PortMonitor.setEvent()
+     *  - PortMonitor.unsetEvent()
+     */ 
+    registerExtraFunctions();
 }
 
 MonitorLua::~MonitorLua()
@@ -63,6 +69,7 @@ bool MonitorLua::loadScript(const char* script_file)
         L = NULL;
         return false;
     }
+
 
     lua_getglobal(L, "PortMonitor");
     if(lua_istable(L, -1) == 0) 
@@ -237,15 +244,6 @@ bool MonitorLua::getParams(yarp::os::Property& params)
     return true;
 }
 
-
-bool MonitorLua::getLocalFunction(const char *name) 
-{
-  lua_pushstring(L, name);
-  lua_gettable(L, -2);
-  return (lua_isfunction(L, -1) == 1);
-}
-
-
 bool MonitorLua::peerTrigged(void)
 {
     if(getLocalFunction("trig"))
@@ -272,6 +270,23 @@ bool MonitorLua::setAcceptConstraint(const char* constraint)
     return true;
 }
 
+
+
+bool MonitorLua::getLocalFunction(const char *name) 
+{
+  lua_pushstring(L, name);
+  lua_gettable(L, -2);
+  return (lua_isfunction(L, -1) == 1);
+}
+
+
+bool MonitorLua::registerExtraFunctions(void)
+{
+    luaL_openlib(L, "PortMonitor", MonitorLua::portMonitorLib, 0);
+    return true;
+}
+
+
 bool MonitorLua::canAccept(void)
 {
     if(constraint == "")
@@ -279,4 +294,38 @@ bool MonitorLua::canAccept(void)
 
     return true;
 }
+
+
+int MonitorLua::setEvent(lua_State* L)
+{
+    const char *event_name = luaL_checkstring(L, 1);
+    if(event_name)
+    {
+        MonitorEventRecord& record = MonitorEventRecord::getInstance();
+        record.lock();
+        record.setEvent(event_name, NULL);
+        record.unlock();
+    }        
+    return 0;
+}
+
+int MonitorLua::unsetEvent(lua_State* L)
+{
+    const char *event_name = luaL_checkstring(L, 1);
+    if(event_name)
+    {
+        MonitorEventRecord& record = MonitorEventRecord::getInstance();
+        record.lock();
+        record.unsetEvent(event_name, NULL);
+        record.unlock();
+    }        
+    return 0;
+}
+
+const struct luaL_reg MonitorLua::portMonitorLib [] = {
+    {"setEvent", MonitorLua::setEvent},
+    {"unsetEvent", MonitorLua::unsetEvent},
+    {NULL, NULL}
+};
+
 

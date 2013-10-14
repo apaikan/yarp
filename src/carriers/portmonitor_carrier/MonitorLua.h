@@ -18,7 +18,7 @@ class MonitorLua : public MonitorBinding
 {
 
 public:
-    MonitorLua();
+    MonitorLua(void);
     virtual ~MonitorLua();
     
     bool loadScript(const char* script_file);
@@ -30,13 +30,17 @@ public:
     bool setAcceptConstraint(const char* constraint);
     bool canAccept(void);
 
-private:
-    bool getLocalFunction(const char *name);
-
-private:
+public:
     lua_State *L;   
     yarp::os::ConstString constraint;
 
+private:
+    bool getLocalFunction(const char *name);
+    bool registerExtraFunctions(void); 
+
+    static int setEvent(lua_State* L); 
+    static int unsetEvent(lua_State* L); 
+    static const struct luaL_reg portMonitorLib[]; 
 };
 
 #endif //_MONITORLUA_INC_

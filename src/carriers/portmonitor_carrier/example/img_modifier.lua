@@ -21,11 +21,6 @@ require("yarp")
 --      getparam = function() ... return param end
 -- }
 --
--- declaring 'PortMonitor' object as an empty table
---
-PortMonitor = {}
-
-
 
 --
 -- create is called when the port monitor is created 
@@ -61,6 +56,7 @@ end
 -- if false is returned, the data will be ignored 
 -- and update() will never be called
 PortMonitor.accept = function(reader)
+    PortMonitor.setEvent("e_accept")
     return true
 end
 

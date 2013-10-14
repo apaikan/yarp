@@ -17,6 +17,7 @@
 #include <yarp/os/Semaphore.h>
 
 #include "MonitorBinding.h"
+#include "MonitorEvent.h"
 
 namespace yarp {
     namespace os {

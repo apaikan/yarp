@@ -136,7 +136,7 @@ bool PortMonitorGroup::acceptIncomingData(yarp::os::ConnectionReader& reader,
 {
     
     //bool accept = true;
-    for (PortMonitorGroup::iterator it = peerSet.begin(); it!=peerSet.end(); it++)
+    for (PeerRecord<PortMonitor>::iterator it = peerSet.begin(); it!=peerSet.end(); it++)
     {
         PortMonitor *peer = it->first;
         if(peer != source)
