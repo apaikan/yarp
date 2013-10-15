@@ -97,8 +97,6 @@ private:
 
 };
 
-
-
 #endif //MONITOREVENT_INC
 
 
