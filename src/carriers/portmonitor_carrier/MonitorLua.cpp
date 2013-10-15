@@ -13,6 +13,7 @@
 #include "MonitorLua.h"
 
 using namespace yarp::os;
+using namespace std;
 
 /**
  * Class MonitorLua
@@ -26,6 +27,8 @@ MonitorLua::MonitorLua(void)
      * Registring extra functions for lua :
      *  - PortMonitor.setEvent()
      *  - PortMonitor.unsetEvent()
+     *  - PortMonitor.setConstraint()
+     *  - PortMonitor.getConstraint()
      */ 
     registerExtraFunctions();
 }
@@ -264,16 +267,6 @@ bool MonitorLua::peerTrigged(void)
     return true;
 }
 
-bool MonitorLua::setAcceptConstraint(const char* constraint)
-{
-    if(!constraint)
-        return false;
-
-    MonitorLua::constraint = constraint;
-    return true;
-}
-
-
 
 bool MonitorLua::getLocalFunction(const char *name) 
 {
@@ -295,8 +288,119 @@ bool MonitorLua::canAccept(void)
     if(constraint == "")
         return true;
 
-    return true;
+    MonitorEventRecord& record = MonitorEventRecord::getInstance();
+   
+    /**
+     * following piece of code replaces each event symbolic name
+     * with a boolean value based on their existance in MonitorEventRecord 
+     */
+    string strConstraint = constraint;
+    string strDummy = strConstraint;
+    searchReplace(strDummy, "(", " ");
+    searchReplace(strDummy, ")", " ");
+    // wrap it with some  guard space
+    strDummy = " " + strDummy + " "; 
+    string delimiter = " ";
+    size_t pos = 0;
+    string token;
+    while ((pos = strDummy.find(delimiter)) != string::npos) 
+    {
+        token = strDummy.substr(0, pos);
+        if(token.size() && (token != "true") && (token != "false") &&
+          (token != "and") && (token != "or") && (token != "not") )
+        {    
+            record.lock();
+            string value = (record.hasEvent(token.c_str())) ? "true" : "false";
+            record.unlock();
+            searchReplace(strConstraint, token, value);
+        }
+        strDummy.erase(0, pos + delimiter.length());
+    }
+    //printf("constraint = \'%s\'\n", strConstraint.c_str());
+
+    /*
+     *  Using lua to evaluate the boolean expression
+     *  Note: this can be replaced by a homebrew boolean 
+     *  expression validator (e.g., BinNodeType from libyarpmanager)
+     */
+    strConstraint = "return " + strConstraint;
+
+    if(luaL_dostring(L, strConstraint.c_str()) != 0)
+    {        
+        YARP_LOG_ERROR(lua_tostring(L, -1));
+        return false;
+    }
+    
+    if(!lua_isboolean(L, -1))
+    {
+        YARP_LOG_ERROR(lua_tostring(L, -1));
+        return false;      
+    }
+    
+    bool accepted = (lua_toboolean(L,-1) == 1);
+    lua_pop(L, 1);
+    return accepted;
 }
+
+
+void MonitorLua::searchReplace(string& str, const string& oldStr, const string& newStr)
+{
+  size_t pos = 0;
+  while((pos = str.find(oldStr, pos)) != string::npos)
+  {
+     str.replace(pos, oldStr.length(), newStr);
+     pos += newStr.length();
+  }
+}
+
+void MonitorLua::trimString(string& str)
+{
+  string::size_type pos = str.find_last_not_of(' ');
+  if(pos != string::npos) {
+    str.erase(pos + 1);
+    pos = str.find_first_not_of(' ');
+    if(pos != string::npos) str.erase(0, pos);
+  }
+  else str.erase(str.begin(), str.end());
+}
+
+
+/**
+ * static members 
+ */
+
+int MonitorLua::setConstraint(lua_State* L)
+{
+    const char *cst = luaL_checkstring(L, 1);
+    if(cst)
+    {
+        lua_getglobal(L, "PortMonitor_Owner");
+        if(!lua_islightuserdata(L, -1))
+        {
+            YARP_LOG_ERROR("Cannot get PortMonitor_Owner");
+            return 0;
+        }
+
+        MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+        owner->setAcceptConstraint(cst);
+    }        
+    return 0;
+}
+
+int MonitorLua::getConstraint(lua_State* L)
+{
+    lua_getglobal(L, "PortMonitor_Owner");
+    if(!lua_islightuserdata(L, -1))
+    {
+        YARP_LOG_ERROR("Cannot get PortMonitor_Owner");
+        return 0;
+    }
+
+    MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+    lua_pushstring(L, owner->getAcceptConstraint());
+    return 0;
+}
+
 
 int MonitorLua::setEvent(lua_State* L)
 {
@@ -338,7 +442,11 @@ int MonitorLua::unsetEvent(lua_State* L)
     return 0;
 }
 
+
+
 const struct luaL_reg MonitorLua::portMonitorLib [] = {
+    {"setConstraint", MonitorLua::setConstraint},
+    {"getConstraint", MonitorLua::getConstraint},
     {"setEvent", MonitorLua::setEvent},
     {"unsetEvent", MonitorLua::unsetEvent},
     {NULL, NULL}

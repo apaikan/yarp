@@ -28,6 +28,7 @@ require("yarp")
 --
 PortMonitor.create = function()
     print("on create")
+
     PortMonitor.img_in = yarp.ImageRgb()
     PortMonitor.img_out = yarp.ImageRgb()
     PortMonitor.index = 0;
@@ -56,7 +57,6 @@ end
 -- if false is returned, the data will be ignored 
 -- and update() will never be called
 PortMonitor.accept = function(reader)
-    PortMonitor.setEvent("e_accept")
     return true
 end
 

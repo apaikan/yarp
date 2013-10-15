@@ -27,6 +27,7 @@ public:
     virtual yarp::os::ConnectionReader& updateData(yarp::os::ConnectionReader& reader) = 0;
     virtual bool peerTrigged(void) = 0;
     virtual bool setAcceptConstraint(const char* constraint) = 0;
+    virtual const char* getAcceptConstraint(void) = 0;
     virtual bool canAccept(void) = 0;
 
     /**
