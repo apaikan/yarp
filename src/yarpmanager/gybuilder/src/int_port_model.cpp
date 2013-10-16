@@ -105,7 +105,6 @@ InternalPortModel::InternalPortModel(ApplicationWindow* parentWnd,
             this->add_child(poly);
             char str[128];
             sprintf(str, "M10,2 a5,5 0 0,0 0,10");
-            printf("%s\n", str);
             path = Goocanvas::PathModel::create(Glib::ustring(str));
             path->property_line_width().set_value(1.0);
             //path->property_fill_color().set_value(strColor.c_str());
