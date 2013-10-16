@@ -15,6 +15,7 @@
 using namespace yarp::os;
 using namespace std;
 
+
 /**
  * Class MonitorLua
  */
@@ -306,8 +307,7 @@ bool MonitorLua::canAccept(void)
     while ((pos = strDummy.find(delimiter)) != string::npos) 
     {
         token = strDummy.substr(0, pos);
-        if(token.size() && (token != "true") && (token != "false") &&
-          (token != "and") && (token != "or") && (token != "not") )
+        if(token.size() && !isKeyword(token.c_str()))
         {    
             record.lock();
             string value = (record.hasEvent(token.c_str())) ? "true" : "false";
@@ -343,7 +343,7 @@ bool MonitorLua::canAccept(void)
 }
 
 
-void MonitorLua::searchReplace(string& str, const string& oldStr, const string& newStr)
+inline void MonitorLua::searchReplace(string& str, const string& oldStr, const string& newStr)
 {
   size_t pos = 0;
   while((pos = str.find(oldStr, pos)) != string::npos)
@@ -353,7 +353,7 @@ void MonitorLua::searchReplace(string& str, const string& oldStr, const string& 
   }
 }
 
-void MonitorLua::trimString(string& str)
+inline void MonitorLua::trimString(string& str)
 {
   string::size_type pos = str.find_last_not_of(' ');
   if(pos != string::npos) {
@@ -362,6 +362,18 @@ void MonitorLua::trimString(string& str)
     if(pos != string::npos) str.erase(0, pos);
   }
   else str.erase(str.begin(), str.end());
+}
+
+inline bool MonitorLua::isKeyword(const char* str) 
+{    
+    if(!str)
+        return false;
+
+    string token = str;
+    if((token == "true") || (token == "false") ||
+       (token == "and") || (token == "or") || (token == "not") )
+       return true;
+    return false;
 }
 
 
@@ -382,6 +394,7 @@ int MonitorLua::setConstraint(lua_State* L)
         }
 
         MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+        YARP_ASSERT(owner);
         owner->setAcceptConstraint(cst);
     }        
     return 0;
@@ -397,6 +410,7 @@ int MonitorLua::getConstraint(lua_State* L)
     }
 
     MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+    YARP_ASSERT(owner);
     lua_pushstring(L, owner->getAcceptConstraint());
     return 0;
 }
@@ -414,6 +428,9 @@ int MonitorLua::setEvent(lua_State* L)
             return 0;
         }
         MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+        YARP_ASSERT(owner);
+        if(owner->isKeyword(event_name))
+            return 0;
         MonitorEventRecord& record = MonitorEventRecord::getInstance();
         record.lock();
         record.setEvent(event_name, owner);
@@ -434,6 +451,9 @@ int MonitorLua::unsetEvent(lua_State* L)
             return 0;
         }
         MonitorLua* owner = static_cast<MonitorLua*>(lua_touserdata(L, -1));
+        YARP_ASSERT(owner);
+        if(owner->isKeyword(event_name))
+            return 0;
         MonitorEventRecord& record = MonitorEventRecord::getInstance();
         record.lock();
         record.unsetEvent(event_name, owner);
@@ -441,7 +461,6 @@ int MonitorLua::unsetEvent(lua_State* L)
     }        
     return 0;
 }
-
 
 
 const struct luaL_reg MonitorLua::portMonitorLib [] = {

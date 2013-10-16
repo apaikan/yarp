@@ -52,6 +52,7 @@ private:
     void trimString(std::string& str);
     void searchReplace(std::string& str, 
                        const std::string& oldStr, const std::string& newStr);
+    bool isKeyword(const char* str);
 
     /* lua accessible fucntion*/
     static int setConstraint(lua_State* L);
